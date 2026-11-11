@@ -43,3 +43,7 @@ export const routeInfo = {
   regreso: 'UCC → Calle 18 → Carrera 40 → Calle 19 → Carrera 31C → Calle 21 → Policía Nacional → Iglesia de la Panadería → Av. Santander → Av. Colombia → Batallón → Av. Bolívar → Parque Bolívar',
   addressNote: 'La dirección particular se omite de la copia pública. Confirmar la ruta definitiva con el responsable del recorrido.'
 };
+export const seedRecords = [
+  ...ida.map(([category, title, description], i) => ({ id: `I${String(i + 1).padStart(2, '0')}`, direction: 'ida', order: i + 1, category, title, description })),
+  ...regreso.map(([category, title, description], i) => ({ id: `R${String(i + 1).padStart(2, '0')}`, direction: 'regreso', order: i + 1, category, title, description })),
+].map(r => ({ ...r, lat: null, lng: null, locationSource: null, photo: null, analysis: null, source: 'Relato del recorrido', status: 'Pendiente de evidencia' }));
