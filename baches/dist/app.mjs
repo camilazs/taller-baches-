@@ -179,3 +179,4 @@ $('save-location').onclick = async () => {
   if (!$('lat').value.trim() || !$('lng').value.trim() || !Number.isFinite(lat) || !Number.isFinite(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) return toast('Escribe una latitud y longitud válidas.');
   if (await savePoint(selected, null, lat, lng, 'Coordenadas introducidas manualmente')) { if (map) map.setView([lat, lng], 17); toast('Coordenadas guardadas.'); }
 };
+$('clear-location').onclick = () => { placing = null; update(selected, { lat: null, lng: null, locationSource: null }); };
