@@ -1,0 +1,11 @@
+{
+  "name": "via-clara-pasto",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node --env-file-if-exists=.env.local server.mjs",
+    "test": "node --test tests/*.test.mjs"
+  },
+  "engines": { "node": ">=22.9.0" }
+}
