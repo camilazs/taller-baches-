@@ -36,3 +36,4 @@ const regreso = [
   ['bache', 'Avenida Bolívar', 'Frente al parque Bolívar.'],
   ['bache', 'Llegada al parque Bolívar', 'Carrera 7, al llegar al destino.'],
 ];
+export const categories = { bache: 'Bache', reductor: 'Reductor', desnivel: 'Desnivel', rampa: 'Rampa', pendiente: 'Sin clasificar' };
