@@ -36,3 +36,17 @@ test('contrato de visión transmite la imagen, valida el resultado y no inventa 
   await assert.rejects(() => analyzeImage(image, async () => ({ ok: false, status: 401 })), /Proveedor/);
   await assert.rejects(() => analyzeImage(image, async () => ({ ok: true, json: async () => ({ choices: [{ finish_reason: 'length', message: { content: '{}' } }] }) })), /incompleto/);
 });
+test('servidor sirve la web, mantiene claves privadas y bloquea llamadas cruzadas', async () => {
+  const before = process.env.AI_API_KEY; delete process.env.AI_API_KEY;
+  const server = createApp(); await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  const base = `http://127.0.0.1:${server.address().port}`;
+  try {
+    const page = await fetch(base); assert.equal(page.status, 200); assert.match(await page.text(), /Vía Clara/);
+    assert.equal((await fetch(base + '/backup.mjs')).status, 200);
+    assert.deepEqual(await (await fetch(base + '/api/config')).json(), { configured: false });
+    assert.equal((await fetch(base + '/.env.local')).status, 404);
+    assert.equal((await fetch(base + '/server.mjs')).status, 404);
+    assert.equal((await fetch(base + '/api/analyze', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })).status, 503);
+    assert.equal((await fetch(base + '/api/analyze', { method: 'POST', headers: { Origin: 'https://example.org', 'Content-Type': 'application/json' }, body: '{}' })).status, 403);
+  } finally { await new Promise(resolve => server.close(resolve)); if (before === undefined) delete process.env.AI_API_KEY; else process.env.AI_API_KEY = before; }
+});
