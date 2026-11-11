@@ -209,3 +209,21 @@ $('export-map').onclick = () => {
   const link = el('a'); link.href = url; link.download = 'via-clara-recorrido.geojson'; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
   toast('Mapa exportado. Solo incluye coordenadas registradas; no incluye las fotografías.');
 };
+$('restore-backup').onchange = async e => {
+  const file = e.target.files[0]; e.target.value = ''; if (!file) return;
+  if (busy) return toast('Espera a que termine el análisis antes de restaurar datos.');
+  try {
+    if (file.size > 150 * 1024 * 1024) throw new Error('El respaldo supera 150 MB.');
+    if (!db) throw new Error('No está disponible el almacenamiento del navegador.');
+    const plan = planRestore(JSON.parse(await file.text()), records, routes);
+    if (!plan.records.length && !plan.routes.length) return toast('El respaldo ya está incorporado; no se duplicaron los registros idénticos.');
+    if (!confirm(`Se añadirán ${plan.records.length} observaciones y ${plan.routes.length} recorridos. Los datos actuales se conservan. ¿Restaurar?`)) return;
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(['records','routes'], 'readwrite');
+      for (const r of plan.routes) tx.objectStore('routes').put(r);
+      for (const r of plan.records) tx.objectStore('records').put(r);
+      tx.oncomplete = resolve; tx.onerror = () => reject(tx.error); tx.onabort = () => reject(tx.error || new Error('No se pudo restaurar.'));
+    });
+    records.push(...plan.records); routes.push(...plan.routes); cameraControls.stop(); render(); toast('Respaldo restaurado. Puedes seleccionar sus recorridos en la lista.');
+  } catch (error) { toast(`No se restauraron datos: ${error.message}`); }
+};
