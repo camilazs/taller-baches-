@@ -181,3 +181,9 @@ $('save-location').onclick = async () => {
 };
 $('clear-location').onclick = () => { placing = null; update(selected, { lat: null, lng: null, locationSource: null }); };
 $('place').onclick = () => { if (!map) return toast('El mapa no está disponible. Puedes introducir las coordenadas manualmente.'); placing = selected; renderDetail(); $('map').scrollIntoView({ behavior: 'smooth', block: 'center' }); toast('Pulsa en el mapa la ubicación de este reporte.'); };
+$('gps').onclick = () => {
+  if (!navigator.geolocation) return toast('Este navegador no dispone de ubicación GPS.');
+  if (!confirm('Usa esta opción solo si estás junto al punto reportado. Se guardará tu posición actual, no el lugar de una foto antigua. ¿Estás allí?')) return;
+  const id = selected;
+  navigator.geolocation.getCurrentPosition(async position => { const { latitude: lat, longitude: lng, accuracy } = position.coords; if (!validCoordinates(lat, lng)) return toast('El GPS no devolvió coordenadas válidas.'); if (await update(id, { lat, lng, locationSource: `GPS actual · precisión indicada ±${Math.round(accuracy)} m` })) { if (map) map.setView([lat, lng], 17); toast(`Ubicación guardada para ${id}; precisión indicada ±${Math.round(accuracy)} m.`); } }, () => toast('No se obtuvo el GPS. Permite la ubicación o registra el punto manualmente.'), { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+};
