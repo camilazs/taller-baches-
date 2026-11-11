@@ -24,3 +24,18 @@ function validateAnalysis(analysis) {
     if (d.location) coordinates(d.location);
   }
 }
+export function validateBackup(value) {
+  if (!value || ![1,2].includes(value.version) || !Array.isArray(value.records) || value.records.length > 10000 || (value.routes != null && !Array.isArray(value.routes))) throw new Error('Selecciona un respaldo JSON exportado por Vía Clara (versión 1 o 2).');
+  const routes = value.routes || [];
+  for (const route of routes) {
+    if (!text(route.id, 100) || !route.id || !text(route.name, 120) || !Array.isArray(route.points) || route.points.length > 5000 || route.points.some(p => !Array.isArray(p) || !validCoordinates(p[0], p[1]))) throw new Error('Recorrido del respaldo inválido.');
+  }
+  for (const r of value.records) {
+    if (!text(r.id, 100) || !r.id || !text(r.title, 120) || !text(r.description, 1600) || !categories[r.category] || !['ida','regreso'].includes(r.direction) || !Array.isArray(r.history || []) || !Array.isArray(r.evidenceHistory || [])) throw new Error('Observación del respaldo inválida.');
+    coordinates(r); validatePhoto(r.photo); validateAnalysis(r.analysis);
+    for (const event of r.history || []) if (!Array.isArray(event.fields) || event.fields.some(f => !text(f, 100)) || !text(event.at, 80)) throw new Error('Historial del respaldo inválido.');
+    for (const evidence of r.evidenceHistory || []) { validatePhoto(evidence.photo); validateAnalysis(evidence.analysis); }
+  }
+  for (const list of [value.records, routes]) if (new Set(list.map(r => r.id)).size !== list.length) throw new Error('El respaldo repite identificadores.');
+  return structuredClone(value);
+}
