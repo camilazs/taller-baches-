@@ -188,3 +188,14 @@ $('gps').onclick = () => {
   navigator.geolocation.getCurrentPosition(async position => { const { latitude: lat, longitude: lng, accuracy } = position.coords; if (!validCoordinates(lat, lng)) return toast('El GPS no devolvió coordenadas válidas.'); if (await update(id, { lat, lng, locationSource: `GPS actual · precisión indicada ±${Math.round(accuracy)} m` })) { if (map) map.setView([lat, lng], 17); toast(`Ubicación guardada para ${id}; precisión indicada ±${Math.round(accuracy)} m.`); } }, () => toast('No se obtuvo el GPS. Permite la ubicación o registra el punto manualmente.'), { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
 };
 $('fit').onclick = () => { const points = [...filtered().flatMap(locatedDetections).map(r => [r.lat, r.lng]), ...(activeRoute().points || [])]; if (!map) return toast('El mapa no está disponible.'); if (!points.length) return toast('No hay ubicaciones ni trazado confirmados para esta ruta.'); map.fitBounds(points, { padding: [45, 65], maxZoom: 17 }); };
+$('analyze').onclick = async () => {
+  const r = current(); if (!r?.photo || !configured || busy) return;
+  busy = true; pendingAnalysis.add(r.id); renderDetail();
+  try {
+    const response = await fetch('/api/analyze', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ image: r.photo }), signal: AbortSignal.timeout(55_000) });
+    const data = await response.json(); if (!response.ok) throw new Error(data.error || 'No se pudo analizar.');
+    if (!analysisLabels[data.analysis?.category] || typeof data.analysis.summary !== 'string' || !Array.isArray(data.analysis.warnings)) throw new Error('El proveedor devolvió un análisis inválido.');
+    if (await update(r.id, { analysis: data.analysis, analysisOrigin: 'Proveedor real de visión · pendiente de validación humana', analyzedAt: new Date().toISOString(), status: 'IA analizada · pendiente de revisión' })) toast(`Análisis guardado en ${r.id}. Revisa la sugerencia antes de aplicarla.`);
+  } catch (error) { toast(error.name === 'TimeoutError' ? 'Se agotó el tiempo del análisis. La fotografía se conserva.' : error.message); }
+  finally { busy = false; pendingAnalysis.delete(r.id); renderDetail(); }
+};
