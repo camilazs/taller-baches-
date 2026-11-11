@@ -166,3 +166,4 @@ async function upload(file) {
     if (await update(id, { photo, photoHash, analysis: null, analysisOrigin: null, status: 'Evidencia cargada' })) toast(`Fotografía guardada en ${id}.`);
   } catch (error) { toast(error.message); }
 }
+for (const [key, label] of Object.entries(categories)) { const option = el('option', label); option.value = key; $('edit-category').append(option); }
