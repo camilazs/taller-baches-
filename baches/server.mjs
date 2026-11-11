@@ -49,3 +49,7 @@ export function createApp() {
     }
   });
 }
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const port = Number(process.env.PORT || 3102);
+  createApp().listen(port, '127.0.0.1', () => console.log(`Vía Clara disponible en http://127.0.0.1:${port}`));
+}
