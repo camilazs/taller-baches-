@@ -1,0 +1,1 @@
+const categories = ['bache', 'reductor', 'desnivel', 'rampa', 'sin_hallazgo', 'no_concluyente'];
