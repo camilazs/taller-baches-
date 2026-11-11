@@ -173,3 +173,4 @@ $('edit-category').onchange = async e => { if (await update(selected, { category
 for (const id of ['photo', 'camera']) $(id).onchange = e => { upload(e.target.files[0]); e.target.value = ''; };
 const cameraControls = setupCapture(upload, toast);
 $('save-description').onclick = () => { if (!selected) return; const title = $('edit-title').value.trim(), description = $('edit-description').value.trim(); if (!title || title.length > 120 || description.length > 1600) return toast('Escribe un título de hasta 120 caracteres y una descripción de hasta 1600.'); update(selected, { title, description }); };
+$('remove-photo').onclick = () => { if (pendingAnalysis.has(selected)) return toast('Espera a que termine el análisis antes de quitar esta foto.'); update(selected, { photo: null, analysis: null, status: 'Pendiente de evidencia' }); };
