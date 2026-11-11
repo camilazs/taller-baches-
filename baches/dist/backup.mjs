@@ -31,7 +31,7 @@ export function validateBackup(value) {
     if (!text(route.id, 100) || !route.id || !text(route.name, 120) || !Array.isArray(route.points) || route.points.length > 5000 || route.points.some(p => !Array.isArray(p) || !validCoordinates(p[0], p[1]))) throw new Error('Recorrido del respaldo inválido.');
   }
   for (const r of value.records) {
-    if (!text(r.id, 100) || !r.id || !text(r.title, 120) || !text(r.description, 1600) || !categories[r.category] || !['ida','regreso'].includes(r.direction) || !Array.isArray(r.history || []) || !Array.isArray(r.evidenceHistory || [])) throw new Error('Observación del respaldo inválida.');
+    if (!text(r.id, 100) || !r.id || !text(r.title, 120) || !text(r.description, 1600) || !categories[r.category] || !['ida','regreso','sin-asignar'].includes(r.direction) || !Array.isArray(r.history || []) || !Array.isArray(r.evidenceHistory || [])) throw new Error('Observación del respaldo inválida.');
     coordinates(r); validatePhoto(r.photo); validateAnalysis(r.analysis);
     for (const event of r.history || []) if (!Array.isArray(event.fields) || event.fields.some(f => !text(f, 100)) || !text(event.at, 80)) throw new Error('Historial del respaldo inválido.');
     for (const evidence of r.evidenceHistory || []) { validatePhoto(evidence.photo); validateAnalysis(evidence.analysis); }

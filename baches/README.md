@@ -2,11 +2,11 @@
 
 Web local independiente de `taller`. Registra el recorrido Parque Bolívar ↔ Universidad Cooperativa de Colombia, con mapa OpenStreetMap/Leaflet, captura de imágenes y detección visual opcional con IA. No requiere instalar dependencias.
 
-## Estado actualizado: ruta definitiva pendiente
+## Estado actualizado: recorrido y fotografías incorporados
 
-El usuario aclaró que **todavía no proporcionó la ruta definitiva**. El inventario anterior de 33 observaciones se conserva íntegro bajo **Borrador anterior · sin confirmar**. El recorrido activo inicial, **Ruta definitiva pendiente**, no tiene coordenadas ni observaciones inventadas.
+El recorrido activo es **Parque Bolívar ↔ UCC · ida y regreso**, confirmado por el usuario. Conserva los 33 reportes originales. El mapa carga dos trazados sobre calles reales obtenidos de OSRM/OpenStreetMap y referencias buscadas en Nominatim. Son una reconstrucción del relato, no una grabación GPS. Se incorporaron las intersecciones calle 18/carrera 40 y calle 19/carrera 40 y la calle 19B. El desvío Margarita Pinta no pudo resolverse por nombre; los giros requieren confirmación. Las zonas discontinuas permiten consultar reportes del sector sin inventar posiciones exactas de cada bache.
 
-Puedes crear recorridos con nombre, importar un GeoJSON `LineString` (coordenadas `[longitud, latitud]`) o pulsar **Trazar en el mapa** y marcar puntos en orden. El trazado solo se guarda al confirmarlo y no se ajusta automáticamente a calles. Las configuraciones anteriores se conservan en el historial del recorrido. Si ida y regreso usan trazados distintos, puedes crear un recorrido para cada uno.
+Se conservan los recorridos creados, las coordenadas manuales y las fotos guardadas en el navegador. El trazado manual tiene prioridad sobre la reconstrucción. Puedes crear recorridos adicionales o importar GeoJSON.
 
 **Nueva observación** crea un registro sin clasificar dentro del recorrido activo. Admite título, descripción, foto, coordenadas, análisis y seguimiento de cambios. Cada región detectada puede ubicarse por separado; mientras no tenga coordenadas propias, solo puede heredar la ubicación aproximada de su captura. Las cajas de píxeles nunca se transforman automáticamente en GPS.
 
@@ -30,7 +30,7 @@ Requiere Node.js 22.9 o superior (recomendado 24). Desde esta carpeta:
 npm.cmd start
 ```
 
-Abrir **http://127.0.0.1:3102**. El servidor escucha solo en este equipo. No abrir `dist/index.html` como archivo: la aplicación necesita el servidor para módulos, almacenamiento y API. Internet es necesario para mapa, Leaflet y fuentes; no existe modo sin conexión completo.
+Abrir **http://127.0.0.1:3102**. El servidor escucha solo en este equipo. No abrir `dist/index.html` como archivo: la aplicación necesita el servidor para módulos, almacenamiento y API. Leaflet y las fotografías originales se sirven localmente. Internet sigue siendo necesario para las teselas de OpenStreetMap y las fuentes; no existe modo sin conexión completo.
 
 ## Recorrido e inventario
 
@@ -48,7 +48,7 @@ Fuentes de referencia de la ciudad, no de coordenadas individuales:
 
 ## Fotos y persistencia
 
-La carpeta original contiene **68 accesos directos `.lnk`**, no fotografías. En la revisión sus destinos en Descargas no existían. No se pueden analizar ni reconstruir imágenes a partir del acceso directo. Los accesos se conservan intactos.
+La carpeta ahora contiene **65 JPEG originales**. Se incorporaron las **64 fotografías viales del 25 de octubre** a `dist/evidence/`, con manifiesto SHA-256 y comprobación de integridad. La foto de comida del 30 de octubre se conserva en la carpeta original, fuera del inventario vial. No se borra ningún original. Las fotos aparecen automáticamente y se guardan en IndexedDB; no vuelven a importarse si su ID ya existe. Dos fotos con baches visibles tienen clasificación visual preliminar identificada como **no IA**; las demás quedan sin clasificar. No se asignan por orden de archivo a ubicaciones o reportes: la galería permite asociar cada foto al reporte correspondiente. Las fotos pendientes de asignar aparecen en la pestaña Fotos, sin aumentar el conteo de 33 reportes.
 
 Carga un JPG, PNG o WebP original de hasta 3 MB en la ficha correspondiente o usa la cámara de un celular compatible. Se comprueban tipo, firma y decodificación; máximo 40 megapíxeles. La cámara depende del navegador y equipo; no se fuerza en escritorio.
 
@@ -62,7 +62,7 @@ El mapa es un inventario: para detectar visualmente un bache se necesita una fot
 
 Si quieres habilitar el análisis, copia `.env.example` a `.env.local` solo si este último no existe, completa tu propia `AI_API_KEY` y reinicia. Usa `AI_MODEL` disponible en tu cuenta, con visión y salidas estructuradas en Chat Completions. El proveedor se configura con `AI_BASE_URL` (HTTPS salvo localhost). La clave permanece en el servidor. No se han reutilizado credenciales de `taller`.
 
-El botón envía únicamente la foto al proveedor y puede generar cargos de tu cuenta. Sin clave se deshabilita; nunca devuelve una detección simulada. Distingue bache, reductor, desnivel, rampa, sin hallazgo y no concluyente. El análisis se guarda como sugerencia separada; la categoría del inventario solo cambia al pulsar **Aplicar clasificación sugerida**. El resultado no mide profundidad, no certifica seguridad ni sustituye una inspección. No hay reintentos automáticos. Solo un análisis simultáneo; timeout del proveedor 45 s. La integración real está pendiente de validarse con una clave autorizada y una foto original.
+El botón envía únicamente la foto al proveedor y puede generar cargos de tu cuenta. Sin clave se deshabilita; nunca devuelve una detección simulada. Distingue bache, reductor, desnivel, rampa, sin hallazgo y no concluyente. El análisis se guarda como sugerencia separada; la categoría del inventario solo cambia al pulsar **Aplicar clasificación sugerida**. El resultado no mide profundidad, no certifica seguridad ni sustituye una inspección. No hay reintentos automáticos. Solo un análisis simultáneo; timeout del proveedor 45 s. La integración real está pendiente de validarse con una clave autorizada; las fotos originales ya están incorporadas.
 
 El contrato de salida estructurada se contrastó con la documentación oficial de OpenAI: https://developers.openai.com/api/docs/guides/structured-outputs?api-mode=chat.
 
@@ -76,3 +76,12 @@ node --check dist/app.mjs
 ```
 
 Las pruebas verifican inventario, validación de imágenes, contrato del proveedor mediante HTTP simulado (no IA real), rechazo de resultados incompletos, rutas locales, falta de credenciales y bloqueo de otros orígenes. No se incluyen servicios pagados ni publicación. Para alojarlo en Internet se debe adaptar autenticación, almacenamiento, protección de cuota y despliegue; este servidor es para uso local.
+
+
+## Cartografía y fotografías incorporadas
+
+- Cartografía: OpenStreetMap (ODbL), geocodificación Nominatim y reconstrucción vehicular OSRM mediante routing.openstreetmap.de. Datos guardados en `dist/pasto-route.json`; no se consulta geocodificación al abrir la app.
+- Leaflet 1.9.4 se distribuye localmente bajo licencia BSD-2-Clause; sus avisos se conservan en el archivo original.
+- Los círculos discontinuos son sectores aproximados del relato. No aumentan el conteo de observaciones con GPS ni se exportan como detecciones exactas.
+- El manifiesto de fotografías incluye el nombre original y hash SHA-256. Las fotos con clasificación visual preliminar están marcadas como no IA.
+- Validación automatizada: 15 pruebas, incluyendo integridad de 64 fotos y contratos HTTP de los recursos del mapa. Validación real de IA pendiente de `AI_API_KEY`.

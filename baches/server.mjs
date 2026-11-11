@@ -5,7 +5,7 @@ import path from 'node:path';
 import { analyzeImage, validateImage } from './vision.mjs';
 
 const root = fileURLToPath(new URL('./dist/', import.meta.url));
-const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8' };
+const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8', '.jpeg': 'image/jpeg', '.png': 'image/png' };
 const send = (res, status, body) => { res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(body)); };
 export function createApp() {
   let analyzing = false;
@@ -39,7 +39,7 @@ export function createApp() {
       if (!['GET', 'HEAD'].includes(req.method)) return send(res, 405, { error: 'Método no permitido.' });
       const file = url.pathname === '/' ? 'index.html' : url.pathname.slice(1);
       // Lista cerrada: no expone fotos, accesos directos, .env ni archivos del servidor.
-      if (!['index.html', 'styles.css', 'app.mjs', 'records.mjs', 'capture.mjs', 'tracking.mjs', 'backup.mjs'].includes(file)) return send(res, 404, { error: 'Archivo no encontrado.' });
+      if (!['index.html', 'styles.css', 'app.mjs', 'records.mjs', 'capture.mjs', 'tracking.mjs', 'backup.mjs', 'photos.mjs', 'pasto-route.json', 'evidence/manifest.json', 'vendor/leaflet.js', 'vendor/leaflet.css', 'vendor/images/layers.png', 'vendor/images/layers-2x.png', 'vendor/images/marker-icon.png', 'vendor/images/marker-icon-2x.png', 'vendor/images/marker-shadow.png'].includes(file) && !/^evidence\/[a-f0-9]{16}\.jpeg$/.test(file)) return send(res, 404, { error: 'Archivo no encontrado.' });
       const content = await readFile(path.join(root, file));
       res.writeHead(200, { 'Content-Type': types[path.extname(file)], 'Cache-Control': 'no-cache', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'strict-origin-when-cross-origin' });
       res.end(req.method === 'HEAD' ? undefined : content);

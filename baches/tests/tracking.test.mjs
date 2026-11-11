@@ -1,9 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { initialRoutes, parseRoute, validCoordinates, findDuplicate, applyRecordChange, locatedDetections } from '../dist/tracking.mjs';
-test('ruta definitiva vacía; solo se admite trazado explícito con coordenadas válidas', () => {
+test('recorrido confirmado conserva coordenadas pendientes; trazado exige coordenadas válidas', () => {
   assert.ok(initialRoutes.every(r => r.points.length === 0));
   assert.equal(initialRoutes[0].status, 'pending');
+  assert.equal(initialRoutes.find(r => r.id === 'draft-original').status, 'reported');
+  assert.match(initialRoutes.find(r => r.id === 'draft-original').name, /Parque Bolívar/);
   // Coordenadas sintéticas únicamente de prueba; no corresponden al recorrido del usuario.
   assert.deepEqual(parseRoute(JSON.stringify({ type: 'LineString', coordinates: [[0, 0], [1, 1]] })), [[0, 0], [1, 1]]);
   assert.throws(() => parseRoute('{"type":"LineString","coordinates":[[200,100],[0,0]]}'));

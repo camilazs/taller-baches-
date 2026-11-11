@@ -43,6 +43,12 @@ test('servidor sirve la web, mantiene claves privadas y bloquea llamadas cruzada
   try {
     const page = await fetch(base); assert.equal(page.status, 200); assert.match(await page.text(), /Vía Clara/);
     assert.equal((await fetch(base + '/backup.mjs')).status, 200);
+    assert.equal((await fetch(base + '/photos.mjs')).status, 200);
+    const leaflet=await fetch(base+'/vendor/leaflet.js');assert.equal(leaflet.status,200);assert.match(leaflet.headers.get('content-type'),/javascript/);
+    const manifest=await (await fetch(base+'/evidence/manifest.json')).json();assert.equal(manifest.length,64);
+    const original=await fetch(base+'/evidence/'+manifest[0].file);assert.equal(original.status,200);assert.equal(original.headers.get('content-type'),'image/jpeg');
+    assert.equal((await fetch(base+'/pasto-route.json')).status,200);
+    assert.equal((await fetch(base+'/evidence/secret.jpeg')).status,404);
     assert.deepEqual(await (await fetch(base + '/api/config')).json(), { configured: false });
     assert.equal((await fetch(base + '/.env.local')).status, 404);
     assert.equal((await fetch(base + '/server.mjs')).status, 404);

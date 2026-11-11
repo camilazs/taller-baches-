@@ -1,13 +1,16 @@
 import { seedRecords, categories, routeInfo } from './records.mjs';
 import { setupCapture } from './capture.mjs';
 import { planRestore, toGeoJSON } from './backup.mjs';
+import { readPhotoFile, galleryRecords } from './photos.mjs';
 import { initialRoutes, DRAFT_ROUTE_ID, PENDING_ROUTE_ID, validCoordinates, parseRoute, findDuplicate, applyRecordChange, locatedDetections } from './tracking.mjs';
 
 const $ = id => document.getElementById(id);
 const analysisLabels = { ...categories, sin_hallazgo: 'Sin hallazgo visible', no_concluyente: 'No concluyente' };
 let records = structuredClone(seedRecords).map(r => ({ ...r, routeId: DRAFT_ROUTE_ID })), selected = null, direction = 'ida', placing = null, busy = false, configured = false, db;
-let routes = structuredClone(initialRoutes), activeRouteId = PENDING_ROUTE_ID, tracing = false, tracePoints = [];
+let routes = structuredClone(initialRoutes), activeRouteId = DRAFT_ROUTE_ID, tracing = false, tracePoints = [];
 let map, markers, lines, toastTimer;
+let importingPhotos = false;
+let pastoRoute = null;
 const pendingAnalysis = new Set();
 function toast(message) { $('toast').textContent = message; $('toast').hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => $('toast').hidden = true, 6500); }
 function current() { return records.find(r => r.id === selected); }
@@ -29,7 +32,16 @@ async function openStorage() {
   records.push(...saved.filter(r => !records.some(seed => seed.id === r.id) && r.id && r.title));
   const savedRoutes = await new Promise((resolve, reject) => { const req = db.transaction('routes').objectStore('routes').getAll(); req.onsuccess = () => resolve(req.result); req.onerror = () => reject(req.error); });
   routes = routes.map(seed => savedRoutes.find(r => r.id === seed.id) || seed); routes.push(...savedRoutes.filter(r => !routes.some(seed => seed.id === r.id)));
-  try { const prior = localStorage.getItem('via-clara:active-route'); if (routes.some(r => r.id === prior)) activeRouteId = prior; } catch {}
+  const reported = routes.find(r => r.id === DRAFT_ROUTE_ID);
+  if (reported?.status === 'draft') { reported.name = initialRoutes.find(r => r.id === DRAFT_ROUTE_ID).name; reported.status = 'reported'; await persist(reported, 'routes'); }
+  try {
+    const prior = localStorage.getItem('via-clara:active-route');
+    if (localStorage.getItem('via-clara:reported-route-confirmed') !== '1') {
+      activeRouteId = DRAFT_ROUTE_ID;
+      localStorage.setItem('via-clara:active-route', activeRouteId);
+      localStorage.setItem('via-clara:reported-route-confirmed', '1');
+    } else if (routes.some(r => r.id === prior)) activeRouteId = prior;
+  } catch {}
 }
 async function persist(record, store = 'records') {
   if (!db) throw new Error('Almacenamiento no disponible; exporta tus datos antes de cerrar.');
@@ -45,15 +57,20 @@ async function update(id, patch) {
 function render() {
   try { localStorage.setItem('via-clara:active-route', activeRouteId); } catch {}
   const scoped = routeRecords();
-  $('total').textContent = scoped.length;
-  const baches = scoped.filter(r => r.category === 'bache').length;
-  $('potholes').textContent = baches; $('others').textContent = scoped.length - baches;
-  $('located').replaceChildren(document.createTextNode(`${scoped.filter(hasLocation).length} `), el('em', `/ ${scoped.length}`));
+  const inventory=scoped.filter(r=>r.source!=='Fotografía original de la carpeta del proyecto');
+  $('total').textContent = inventory.length;
+  const baches = inventory.filter(r => r.category === 'bache').length;
+  $('potholes').textContent = baches; $('others').textContent = inventory.length - baches;
+  $('global-ai-status').textContent = configured ? 'IA configurada' : 'IA sin activar';
+  $('global-ai-status').classList.toggle('ready', configured);
+  $('map-empty').hidden = scoped.some(r => locatedDetections(r).length) || Boolean(activeRoute().points?.length) || (activeRouteId === DRAFT_ROUTE_ID && Boolean(pastoRoute?.[direction]?.coordinates?.length));
+  $('show-draft').hidden = activeRouteId === DRAFT_ROUTE_ID;
+  $('located').replaceChildren(document.createTextNode(`${inventory.filter(hasLocation).length} `), el('em', `/ ${inventory.length}`));
   $('route-select').replaceChildren(...routes.map(r => { const option = el('option', r.name); option.value = r.id; return option; })); $('route-select').value = activeRouteId;
-  $('route-state').textContent = activeRoute().status === 'pending' ? 'Ruta definitiva aún no proporcionada. Configúrala cuando esté confirmada.' : activeRoute().status === 'draft' ? 'BORRADOR ANTERIOR · No es la ruta definitiva y no tiene trazado confirmado.' : 'Ruta introducida por el usuario · pendiente de verificación en campo.';
-  $('route-origin').textContent = activeRouteId === DRAFT_ROUTE_ID ? 'Parque Bolívar · borrador' : 'Origen por confirmar';
-  $('route-destination').textContent = activeRouteId === DRAFT_ROUTE_ID ? 'UCC · borrador' : 'Destino por confirmar';
-  $('route-summary').textContent = activeRouteId === DRAFT_ROUTE_ID ? routeInfo[direction] : activeRoute().name;
+  $('route-state').textContent = activeRouteId === DRAFT_ROUTE_ID ? 'Recorrido de ida y regreso proporcionado y confirmado por el usuario. Las ubicaciones exactas y el trazado GPS están pendientes de registrar.' : activeRoute().status === 'pending' ? 'Nuevo recorrido sin trazado registrado.' : 'Ruta introducida por el usuario · pendiente de verificación en campo.';
+  $('route-origin').textContent = activeRouteId === DRAFT_ROUTE_ID ? (direction === 'ida' ? 'Parque Bolívar' : 'Universidad Cooperativa de Colombia') : 'Origen por confirmar';
+  $('route-destination').textContent = activeRouteId === DRAFT_ROUTE_ID ? (direction === 'ida' ? 'Universidad Cooperativa de Colombia' : 'Parque Bolívar') : 'Destino por confirmar';
+  $('route-summary').textContent = activeRouteId === DRAFT_ROUTE_ID ? (routeInfo[direction] || 'Fotografías originales del recorrido · sentido y ubicación pendientes de confirmar') : activeRoute().name;
   $('save-trace').hidden = !tracing;
   const visible = filtered();
   if (visible.length && !visible.some(r => r.id === selected)) { selected = visible[0].id; placing = null; }
@@ -64,6 +81,7 @@ function render() {
     const button = el('button', undefined, `record ${r.id === selected ? 'selected' : ''}`);
     button.type = 'button'; button.setAttribute('aria-pressed', String(r.id === selected));
     button.append(el('span', String(r.order).padStart(2, '0'), 'number'));
+    if (r.photo) { const thumb = el('img', undefined, 'record-thumb'); thumb.src = r.photo; thumb.alt = ''; thumb.loading = 'lazy'; button.append(thumb); }
     const copy = el('span', undefined, 'record-copy'); copy.append(el('strong', r.title));
     const type = el('small'); type.append(el('i', undefined, `dot ${r.category}`), document.createTextNode(`${categories[r.category]} · ${r.id}`));
     copy.append(type, el('small', hasLocation(r) ? '● Ubicación registrada' : '○ Ubicación pendiente', 'record-status')); button.append(copy);
@@ -71,20 +89,57 @@ function render() {
     $('records').append(button);
   }
   document.querySelectorAll('[data-direction]').forEach(b => { const active = b.dataset.direction === direction; b.classList.toggle('active', active); b.setAttribute('aria-pressed', String(active)); });
-  renderDetail(); renderMap();
+  renderDetail(); renderMap(); renderGallery();
+}
+function selectEvidence(record) {
+  cameraControls.stop(); selected = record.id; direction = record.direction; placing = null;
+  $('category').value = 'all'; $('location-filter').value = 'all'; $('search').value = '';
+  render(); $('detail').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function renderGallery() {
+  const scoped = routeRecords(), visible = galleryRecords(scoped, $('gallery-type').value).sort((a,b)=>Number(Boolean(b.photo))-Number(Boolean(a.photo)) || a.order-b.order);
+  const photos = scoped.filter(r => r.photo).length;
+  $('gallery-count').textContent = `${visible.length} ${visible.length === 1 ? 'evidencia' : 'evidencias'}`;
+  $('gallery-note').textContent = photos ? `${photos} fotografías originales adjuntas. Las observaciones sin imagen siguen pendientes de evidencia.` : 'Aún no hay fotografías originales adjuntas a este recorrido. Puedes cargar varias a la vez o añadirlas a cada reporte.';
+  $('photo-batch').disabled = importingPhotos;
+  $('gallery-import-state').textContent = importingPhotos ? 'Validando y guardando las imágenes…' : 'JPG, PNG o WebP · 3 MB por imagen · Hasta 20 por carga';
+  $('evidence-cards').replaceChildren();
+  if (!visible.length) {
+    const empty = el('div',undefined,'gallery-empty'); empty.append(el('span','↥','empty-symbol'),el('h3','Tus fotografías van aquí'),el('p','Adjunta los archivos originales para documentar los baches. Los accesos directos de Windows no incluyen la imagen.'));
+    const attach = el('button','Adjuntar fotografías','primary'); attach.type='button'; attach.onclick=()=>$('photo-batch').click(); empty.append(attach); $('evidence-cards').append(empty);
+  }
+  for (const r of visible) {
+    const card = el('article',undefined,'evidence-card');
+    const media = el('div',undefined,'evidence-media');
+    if (r.photo) { const image = el('img'); image.src=r.photo; image.alt=`Evidencia de ${r.title}`; image.loading='lazy'; media.append(image); }
+    else { media.classList.add('missing-photo'); media.append(el('span','▧','missing-icon'),el('span','Sin fotografía original')); }
+    const badge = el('span',categories[r.category],`photo-badge ${r.category}`); media.append(badge); card.append(media);
+    const info=el('div',undefined,'evidence-info'); info.append(el('small',r.source?.includes('Relato')?'REPORTE DEL RECORRIDO':'FOTOGRAFÍA DEL USUARIO'),el('h3',r.title),el('p',hasLocation(r)?'● Ubicación registrada':'○ Pendiente de ubicación','evidence-location'));
+    const note=el('span',r.analysis?'IA analizada · requiere revisión':r.reviewMethod?'Revisión visual preliminar · no IA':r.photo?'Pendiente de análisis':'Pendiente de evidencia','evidence-status'); info.append(note);
+    const actions=el('div',undefined,'evidence-actions'); const view=el('button','Ver ficha ↗','outline'); view.type='button'; view.onclick=()=>selectEvidence(r); actions.append(view);
+    if (!r.photo) { const attach=el('button','Adjuntar foto','text-button'); attach.type='button'; attach.onclick=()=>{selectEvidence(r);$('photo').click();}; actions.append(attach); }
+    if (r.photo && r.source === 'Fotografía original de la carpeta del proyecto') {
+      const associate=el('select'); associate.setAttribute('aria-label',`Asociar ${r.title} a un reporte`);
+      const placeholder=el('option',r.linkedTo ? `Asociada a ${r.linkedTo}` : 'Asociar foto a un reporte…'); placeholder.value='';associate.append(placeholder);
+      for(const target of scoped.filter(item=>item.source?.includes('Relato'))){const option=el('option',`${target.id} · ${target.title}`);option.value=target.id;associate.append(option);}
+      associate.onchange=async()=>{const target=records.find(item=>item.id===associate.value);if(!target)return;if(target.photo&&!confirm('Este reporte ya tiene foto. La anterior se conservará en su historial. ¿Asociar esta fotografía?'))return;if(await update(target.id,{photo:r.photo,photoHash:r.photoHash,analysis:null,status:'Fotografía asociada por el usuario · pendiente de análisis'})){await update(r.id,{linkedTo:target.id});toast(`Foto asociada a ${target.id}.`);}};
+      actions.append(associate);
+    }
+    info.append(actions);card.append(info);$('evidence-cards').append(card);
+  }
 }
 function renderDetail() {
   const r = current(); $('detail').hidden = !r; if (!r) { $('record-history').replaceChildren(); return; }
   $('detail-id').textContent = `${r.id} / ${r.direction === 'ida' ? 'IDA' : 'REGRESO'} / ${r.source}`;
   $('detail-title').textContent = r.title; $('detail-description').textContent = r.description; $('detail-category').textContent = categories[r.category]; $('edit-category').value = r.category;
   $('edit-title').value = r.title; $('edit-description').value = r.description;
-  $('analysis-origin').textContent = r.analysis ? (r.analysisOrigin || 'Análisis previo · origen sin verificar') : 'Pendiente de análisis real. Las observaciones del borrador no son detecciones de IA.';
+  $('analysis-origin').textContent = r.analysis ? (r.analysisOrigin || 'Análisis previo · origen sin verificar') : (r.reviewMethod || 'Pendiente de análisis real. Las observaciones del recorrido son reportes del usuario, no detecciones de IA.');
   $('photo-empty').hidden = Boolean(r.photo); $('photo-preview').hidden = !r.photo; $('remove-photo').hidden = !r.photo;
   $('photo-stage').hidden = !r.photo;
   if (r.photo) $('photo-preview').src = r.photo; else $('photo-preview').removeAttribute('src');
   $('lat').value = r.lat ?? ''; $('lng').value = r.lng ?? '';
   $('location-status').textContent = hasLocation(r) ? `Origen: ${r.locationSource || 'Registro manual'}. Posición aportada por el usuario; no verificada en campo.` : 'Sin coordenadas: este reporte aún no aparece en el mapa.';
-  $('analyze').disabled = !r.photo || !configured || busy;
+  $('analyze').disabled = !r.photo || !configured || busy || importingPhotos;
   $('analyze').textContent = busy ? 'Analizando fotografía…' : '✦ Analizar fotografía';
   $('analysis').hidden = !r.analysis;
   if (r.analysis) $('analysis').textContent = `Sugerencia: ${analysisLabels[r.analysis.category]} · Confianza visual ${r.analysis.confidence}\n${r.analysis.summary}\n${r.analysis.warnings.join('\n')}`;
@@ -113,6 +168,23 @@ function renderDetail() {
 function renderMap() {
   if (!map) return;
   markers.clearLayers(); lines.clearLayers();
+  if(activeRouteId===DRAFT_ROUTE_ID && pastoRoute && !activeRoute().points?.length){
+    const road=pastoRoute[direction];
+    if(road?.coordinates?.length)L.polyline(road.coordinates.map(([lng,lat])=>[lat,lng]),{color:direction==='ida'?'#ed713e':'#2675c9',weight:5,opacity:.85}).bindTooltip('Recorrido reconstruido sobre calles reales · confirmar giros en campo').addTo(lines);
+    const labels={calle19b:'Calle 19B',calle18cra40:'Calle 18 / carrera 40',calle19cra40:'Calle 19 / carrera 40',calle19:'Calle 19',parque:'Parque Bolívar',hospital:'Hospital Departamental',batallon:'Batallón Boyacá',colombia:'Av. Colombia',santander:'Av. Santander',puentes:'Sector Dos Puentes',pedagogico:'Colegio Pedagógico',hotel:'Hotel V1501',morasurco:'Calle 22 · Morasurco',cra44:'Carrera 44',ucc:'UCC · carrera 45',cra31:'Carrera 31C',calle21:'Calle 21',panaderia:'Iglesia de la Panadería'};
+    for(const key of road?.waypointKeys||[]){const [lng,lat]=pastoRoute.references[key];L.circleMarker([lat,lng],{radius:5,color:'#17273e',fillColor:'#fff',fillOpacity:1,weight:2}).bindPopup(`${labels[key]||key}<br>Referencia cartográfica del recorrido; no es un bache detectado.`).addTo(lines);}
+    const sectors=new Map();
+    for(const report of filtered()){
+      const key=pastoRoute.reportSectors?.[report.id];if(!key||hasLocation(report))continue;
+      if(!sectors.has(key))sectors.set(key,[]);sectors.get(key).push(report);
+    }
+    for(const [key,reports] of sectors){
+      const [lng,lat]=pastoRoute.references[key],popup=el('div');
+      popup.append(el('strong','Sector aproximado del relato'),el('p','Referencia cartográfica. No representa la ubicación exacta de cada irregularidad.'));
+      for(const report of reports){const button=el('button',`${report.id} · ${categories[report.category]} · ${report.title}`,'sector-report');button.onclick=()=>selectEvidence(report);popup.append(button);}
+      L.circle([lat,lng],{radius:85,color:reports.some(r=>r.category==='bache')?'#dd6845':'#c29a2c',weight:2,dashArray:'5 5',fillOpacity:.12}).bindPopup(popup).addTo(markers);
+    }
+  }
   const visible = filtered();
   for (const r of visible) for (const point of locatedDetections(r)) {
     const marker = L.marker([point.lat, point.lng], { draggable: true, icon: L.divIcon({ className: `marker ${point.category}`, html: String(r.order), iconSize: [29, 29], iconAnchor: [14, 14] }) });
@@ -153,21 +225,15 @@ async function upload(file) {
   const id = selected;
   if (!id) return toast('Crea o selecciona una observación antes de cargar una fotografía.');
   try {
-    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 3 * 1024 * 1024 || file.size < 12) throw new Error('Selecciona un JPG, PNG o WebP original de hasta 3 MB. Los accesos directos .lnk no son imágenes.');
-    const bytes = new Uint8Array(await file.arrayBuffer());
-    const valid = file.type === 'image/jpeg' ? bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255 : file.type === 'image/png' ? [137,80,78,71,13,10,26,10].every((n, i) => bytes[i] === n) : String.fromCharCode(...bytes.slice(0, 4)) === 'RIFF' && String.fromCharCode(...bytes.slice(8, 12)) === 'WEBP';
-    if (!valid) throw new Error('El contenido no coincide con el formato indicado.');
-    const photo = await new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.onerror = () => reject(new Error('No se pudo leer la imagen.')); reader.readAsDataURL(file); });
-    await new Promise((resolve, reject) => { const img = new Image(); img.onload = () => img.width * img.height <= 40_000_000 ? resolve() : reject(new Error('La foto supera 40 megapíxeles.')); img.onerror = () => reject(new Error('No se pudo abrir la imagen.')); img.src = photo; });
+    const {photo,photoHash} = await readPhotoFile(file);
     if (pendingAnalysis.has(id)) throw new Error('Espera a que termine el análisis de esta foto antes de cambiarla.');
-    const photoHash = globalThis.crypto?.subtle ? Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))).map(n => n.toString(16).padStart(2, '0')).join('') : null;
     const duplicate = findDuplicate(records, { ...records.find(r => r.id === id), photo, photoHash });
     if (duplicate && !confirm(`Esta imagen o una ubicación equivalente ya está en ${duplicate.id}. ¿Conservarla también en esta observación?`)) return;
     if (await update(id, { photo, photoHash, analysis: null, analysisOrigin: null, status: 'Evidencia cargada' })) toast(`Fotografía guardada en ${id}.`);
   } catch (error) { toast(error.message); }
 }
 for (const [key, label] of Object.entries(categories)) { const option = el('option', label); option.value = key; $('edit-category').append(option); }
-document.querySelectorAll('[data-direction]').forEach(button => button.onclick = () => { cameraControls.stop(); direction = button.dataset.direction; selected = routeRecords().find(r => r.direction === direction)?.id || null; placing = null; render(); });
+document.querySelectorAll('[data-direction]').forEach(button => button.onclick = () => { cameraControls.stop(); direction = button.dataset.direction; selected = routeRecords().find(r => r.direction === direction)?.id || null; placing = null; render(); if(pastoRoute?.[direction]?.coordinates?.length && activeRouteId===DRAFT_ROUTE_ID)$('fit').click(); });
 for (const id of ['search', 'category', 'location-filter']) $(id).addEventListener(id === 'search' ? 'input' : 'change', render);
 $('edit-category').onchange = async e => { if (await update(selected, { category: e.target.value, status: 'Clasificación revisada manualmente' })) toast('Clasificación guardada.'); };
 for (const id of ['photo', 'camera']) $(id).onchange = e => { upload(e.target.files[0]); e.target.value = ''; };
@@ -187,7 +253,7 @@ $('gps').onclick = () => {
   const id = selected;
   navigator.geolocation.getCurrentPosition(async position => { const { latitude: lat, longitude: lng, accuracy } = position.coords; if (!validCoordinates(lat, lng)) return toast('El GPS no devolvió coordenadas válidas.'); if (await update(id, { lat, lng, locationSource: `GPS actual · precisión indicada ±${Math.round(accuracy)} m` })) { if (map) map.setView([lat, lng], 17); toast(`Ubicación guardada para ${id}; precisión indicada ±${Math.round(accuracy)} m.`); } }, () => toast('No se obtuvo el GPS. Permite la ubicación o registra el punto manualmente.'), { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
 };
-$('fit').onclick = () => { const points = [...filtered().flatMap(locatedDetections).map(r => [r.lat, r.lng]), ...(activeRoute().points || [])]; if (!map) return toast('El mapa no está disponible.'); if (!points.length) return toast('No hay ubicaciones ni trazado confirmados para esta ruta.'); map.fitBounds(points, { padding: [45, 65], maxZoom: 17 }); };
+$('fit').onclick = () => { const points = [...filtered().flatMap(locatedDetections).map(r => [r.lat, r.lng]), ...(activeRoute().points || []), ...(activeRouteId===DRAFT_ROUTE_ID?(pastoRoute?.[direction]?.coordinates||[]).map(([lng,lat])=>[lat,lng]):[])]; if (!map) return toast('El mapa no está disponible.'); if (!points.length) return toast('No hay ubicaciones ni trazado confirmados para esta ruta.'); map.fitBounds(points, { padding: [45, 65], maxZoom: 17 }); };
 $('analyze').onclick = async () => {
   const r = current(); if (!r?.photo || !configured || busy) return;
   busy = true; pendingAnalysis.add(r.id); renderDetail();
@@ -201,13 +267,15 @@ $('analyze').onclick = async () => {
 };
 $('apply-analysis').onclick = async () => { const r = current(); if (!r.analysis || !categories[r.analysis.category]) return; if (await update(r.id, { category: r.analysis.category, status: 'Sugerencia de IA aceptada por el usuario' })) toast('Clasificación sugerida aplicada.'); };
 $('export').onclick = () => {
-  const payload = { version: 2, exportedAt: new Date().toISOString(), routeInfo, routes, activeRouteId, notes: ['El inventario anterior es un borrador, no la ruta definitiva ni detecciones de IA.', 'Coordenadas aportadas por el usuario, no verificadas en campo.', 'Las cajas en la foto no proporcionan por sí mismas coordenadas geográficas.'], records };
+  const payload = { version: 2, exportedAt: new Date().toISOString(), routeInfo, routes, activeRouteId, notes: ['El recorrido de ida y regreso fue proporcionado por el usuario; sus observaciones no son detecciones de IA.', 'Coordenadas aportadas por el usuario, no verificadas en campo.', 'Las cajas en la foto no proporcionan por sí mismas coordenadas geográficas.'], records };
   const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })); const a = el('a'); a.href = url; a.download = 'via-clara-pasto.json'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); toast('Exportación completa, incluidas las fotos cargadas.');
 };
 $('export-map').onclick = () => {
-  const url = URL.createObjectURL(new Blob([JSON.stringify(toGeoJSON(routeRecords(), [activeRoute()]), null, 2)], { type: 'application/geo+json' }));
+  const data=toGeoJSON(routeRecords(), [activeRoute()]);
+  if(activeRouteId===DRAFT_ROUTE_ID && pastoRoute && !activeRoute().points?.length)for(const sense of ['ida','regreso'])data.features.push({type:'Feature',geometry:{type:'LineString',coordinates:pastoRoute[sense].coordinates},properties:{direction:sense,source:pastoRoute.source,status:'Reconstrucción cartográfica del relato · no GPS',approximate:true}});
+  const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/geo+json' }));
   const link = el('a'); link.href = url; link.download = 'via-clara-recorrido.geojson'; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
-  toast('Mapa exportado. Solo incluye coordenadas registradas; no incluye las fotografías.');
+  toast('Mapa exportado sin fotografías. Los trazados reconstruidos están identificados como aproximados.');
 };
 $('restore-backup').onchange = async e => {
   const file = e.target.files[0]; e.target.value = ''; if (!file) return;
@@ -253,7 +321,56 @@ $('new-record').onclick = async () => {
   const record = { id: crypto.randomUUID(), routeId: activeRouteId, direction, order: routeRecords().filter(r => r.direction === direction).length + 1, title: 'Nueva observación vial', description: 'Captura o carga una fotografía y confirma la ubicación.', category: 'pendiente', lat: null, lng: null, photo: null, analysis: null, source: 'Captura del usuario · pendiente de análisis', status: 'Pendiente de evidencia', createdAt: now, history: [] };
   try { await persist(record); records.push(record); selected = record.id; $('category').value = 'all'; $('location-filter').value = 'all'; $('search').value = ''; render(); $('detail').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch { toast('No se pudo crear la observación.'); }
 };
+$('gallery-type').onchange=renderGallery;
+$('show-draft').onclick=()=>{ $('route-select').value=DRAFT_ROUTE_ID; $('route-select').dispatchEvent(new Event('change')); $('gallery-type').value='bache'; renderGallery(); $('evidence-gallery').scrollIntoView({behavior:'smooth',block:'start'}); };
+$('photo-batch').onchange=async e=>{
+  const files=Array.from(e.target.files);e.target.value='';
+  if(!files.length)return;
+  if(importingPhotos||busy)return toast('Espera a que termine la operación actual.');
+  if(files.length>20)return toast('Puedes adjuntar hasta 20 fotografías en cada carga.');
+  if(!db)return toast('El almacenamiento del navegador no está disponible.');
+  const routeId=activeRouteId, captureDirection=direction; importingPhotos=true;renderGallery();renderDetail();
+  try {
+    const additions=[];let skipped=0;
+    for(const file of files){
+      const prepared=await readPhotoFile(file);
+      const duplicate=[...records,...additions].some(r=>r.routeId===routeId&&(r.photo===prepared.photo||(prepared.photoHash&&r.photoHash===prepared.photoHash)));
+      if(duplicate){skipped++;continue;}
+      const now=new Date().toISOString();additions.push({id:crypto.randomUUID(),routeId,direction:captureDirection,order:records.filter(r=>r.routeId===routeId&&r.direction===captureDirection).length+additions.length+1,title:file.name.replace(/\.[^.]+$/,'').slice(0,120),description:'Fotografía adjuntada por el usuario. Clasificación y ubicación pendientes de revisión.',category:'pendiente',lat:null,lng:null,...prepared,analysis:null,source:'Fotografía original adjuntada por el usuario',status:'Evidencia cargada · pendiente de análisis',createdAt:now,history:[]});
+    }
+    if(activeRouteId!==routeId)throw new Error('Cambiaste de recorrido durante la carga. Selecciona el recorrido y vuelve a adjuntar las fotos.');
+    if(additions.length)await new Promise((resolve,reject)=>{const tx=db.transaction('records','readwrite');for(const r of additions)tx.objectStore('records').put(r);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||new Error('No se pudo guardar el lote.'));});
+    records.push(...additions);$('gallery-type').value='all';render();toast(`${additions.length} fotografías adjuntas${skipped?`; ${skipped} duplicadas omitidas`:''}. Clasificación y ubicación pendientes.`);
+  }catch(error){toast(`No se guardó el lote: ${error.message}`);}
+  finally{importingPhotos=false;renderGallery();renderDetail();}
+};
 try { await openStorage(); } catch { toast('No se pudo abrir el almacenamiento local. Puedes explorar el inventario, pero no guardar cambios.'); }
 setupMap(); render();
-try { const response = await fetch('/api/config'); if (!response.ok) throw new Error(); const data = await response.json(); configured = data.configured === true; $('ai-status').textContent = configured ? 'IA disponible' : 'Sin configurar'; renderDetail(); }
+try {
+  const response=await fetch('/pasto-route.json');if(!response.ok)throw new Error();
+  pastoRoute=await response.json();render();if(activeRouteId===DRAFT_ROUTE_ID)$('fit').click();
+}catch{toast('No se pudo cargar el trazado de Pasto. Los reportes se conservan.');}
+async function loadProjectPhotos(){
+  try{
+    const response=await fetch('/evidence/manifest.json');if(!response.ok)throw new Error('No se pudo leer el inventario de fotografías.');
+    const manifest=await response.json();
+    let count=0;
+    for(const [index,item] of manifest.entries()){
+      const existing=records.find(r=>r.id===item.id);
+      if(existing){
+        if(item.reviewedCategory && existing.category==='pendiente' && !existing.history?.length){const revised={...existing,category:item.reviewedCategory,reviewMethod:item.reviewMethod};if(db)await persist(revised);Object.assign(existing,revised);}
+        continue;
+      }
+      const response=await fetch(`/evidence/${item.file}`);if(!response.ok)throw new Error(`No se pudo cargar ${item.originalName}.`);
+      const prepared=await readPhotoFile(new File([await response.blob()],item.originalName,{type:'image/jpeg'}));
+      if(prepared.photoHash!==item.sha256)throw new Error('La fotografía no coincide con el original.');
+      const record={id:item.id,routeId:DRAFT_ROUTE_ID,direction:'sin-asignar',order:index+1,title:`Fotografía del recorrido ${String(index+1).padStart(2,'0')}`,description:`Archivo original: ${item.originalName}. Relación con el reporte y sentido pendientes de confirmar.`,category:item.reviewedCategory||'pendiente',reviewMethod:item.reviewMethod,lat:null,lng:null,...prepared,analysis:null,source:'Fotografía original de la carpeta del proyecto',status:'Foto original · pendiente de validación y ubicación',history:[]};
+      if(db)await persist(record);records.push(record);count++;
+      if(count%8===0)renderGallery();
+    }
+    render();if(count)toast(`${count} fotografías originales incorporadas. Puedes asociarlas a los reportes del recorrido.`);
+  }catch(error){render();toast(error.message);}
+}
+void loadProjectPhotos();
+try { const response = await fetch('/api/config'); if (!response.ok) throw new Error(); const data = await response.json(); configured = data.configured === true; $('ai-status').textContent = configured ? 'Proveedor configurado' : 'Sin configurar'; render(); }
 catch { $('ai-status').textContent = 'Servidor no disponible'; }
