@@ -180,3 +180,4 @@ $('save-location').onclick = async () => {
   if (await savePoint(selected, null, lat, lng, 'Coordenadas introducidas manualmente')) { if (map) map.setView([lat, lng], 17); toast('Coordenadas guardadas.'); }
 };
 $('clear-location').onclick = () => { placing = null; update(selected, { lat: null, lng: null, locationSource: null }); };
+$('place').onclick = () => { if (!map) return toast('El mapa no está disponible. Puedes introducir las coordenadas manualmente.'); placing = selected; renderDetail(); $('map').scrollIntoView({ behavior: 'smooth', block: 'center' }); toast('Pulsa en el mapa la ubicación de este reporte.'); };
