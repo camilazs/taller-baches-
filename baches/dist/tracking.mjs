@@ -21,3 +21,8 @@ export function distanceMeters(a, b) {
 export function findDuplicate(records, candidate) {
   return records.find(r => r.id !== candidate.id && r.routeId === candidate.routeId && ((candidate.photo && r.photo === candidate.photo) || (candidate.photoHash && r.photoHash === candidate.photoHash) || (candidate.category !== 'pendiente' && r.category === candidate.category && distanceMeters(r, candidate) < 3)));
 }
+export function applyRecordChange(record, patch, timestamp = new Date().toISOString()) {
+  const history = [...(record.history || []), { at: timestamp, fields: Object.keys(patch), category: patch.category ?? record.category, lat: patch.lat === undefined ? record.lat : patch.lat, lng: patch.lng === undefined ? record.lng : patch.lng, analysis: patch.analysis || undefined }];
+  const evidenceHistory = 'photo' in patch && record.photo && patch.photo !== record.photo ? [...(record.evidenceHistory || []), { photo: record.photo, analysis: record.analysis, photoHash: record.photoHash, archivedAt: timestamp }] : record.evidenceHistory || [];
+  return { ...record, ...patch, updatedAt: timestamp, history, evidenceHistory };
+}
