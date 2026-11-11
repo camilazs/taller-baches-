@@ -15,3 +15,4 @@ function activeRoute() { return routes.find(r => r.id === activeRouteId) || rout
 function routeRecords() { return records.filter(r => (r.routeId || DRAFT_ROUTE_ID) === activeRouteId); }
 function hasLocation(r) { return Number.isFinite(r.lat) && Number.isFinite(r.lng); }
 function filtered() { const query = $('search').value.toLocaleLowerCase('es'); return routeRecords().filter(r => r.direction === direction && ($('category').value === 'all' || r.category === $('category').value) && ($('location-filter').value === 'all' || ($('location-filter').value === 'located' ? hasLocation(r) : !hasLocation(r))) && `${r.title} ${r.description} ${r.id}`.toLocaleLowerCase('es').includes(query)); }
+function el(tag, text, className) { const n = document.createElement(tag); if (text !== undefined) n.textContent = text; if (className) n.className = className; return n; }
