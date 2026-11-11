@@ -238,3 +238,9 @@ $('new-route').onclick = async () => {
   const route = { id: crypto.randomUUID(), name, status: 'pending', points: [], createdAt: new Date().toISOString() };
   try { await persist(route, 'routes'); routes.push(route); activeRouteId = route.id; selected = null; render(); toast('Recorrido creado sin coordenadas. Configura su trazado cuando tengas la ruta definitiva.'); } catch { toast('No se pudo guardar el recorrido.'); }
 };
+async function saveRoute(points) {
+  const old = activeRoute();
+  if (points.length < 2) return toast('Añade al menos dos puntos al trazado.');
+  const route = { ...old, points, status: 'user-provided', updatedAt: new Date().toISOString(), history: [...(old.history || []), { at: new Date().toISOString(), points: old.points || [] }] };
+  try { await persist(route, 'routes'); routes = routes.map(r => r.id === route.id ? route : r); tracing = false; tracePoints = []; render(); map?.fitBounds(points, { padding: [40, 40] }); toast('Trazado guardado. No se ajusta automáticamente a la red de calles.'); } catch { toast('No se pudo guardar el trazado.'); }
+}
