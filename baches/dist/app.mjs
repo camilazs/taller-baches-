@@ -227,3 +227,9 @@ $('restore-backup').onchange = async e => {
     records.push(...plan.records); routes.push(...plan.routes); cameraControls.stop(); render(); toast('Respaldo restaurado. Puedes seleccionar sus recorridos en la lista.');
   } catch (error) { toast(`No se restauraron datos: ${error.message}`); }
 };
+$('route-select').onchange = e => {
+  cameraControls.stop();
+  activeRouteId = e.target.value; selected = null; placing = null; tracing = false; tracePoints = [];
+  try { localStorage.setItem('via-clara:active-route', activeRouteId); } catch {}
+  render(); if (map && activeRoute().points?.length >= 2) map.fitBounds(activeRoute().points, { padding: [40, 40] }); else if (map) map.setView([1.221, -77.281], 14);
+};
