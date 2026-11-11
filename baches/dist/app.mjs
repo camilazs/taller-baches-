@@ -148,3 +148,21 @@ async function savePoint(id, index, lat, lng, source = 'Selección manual en map
   if (duplicate && !confirm(`El reporte ${duplicate.id} está muy cerca o usa la misma foto. ¿Guardar esta ubicación como un hallazgo distinto?`)) return false;
   return update(id, { lat, lng, locationSource: source });
 }
+async function upload(file) {
+  if (!file) return;
+  const id = selected;
+  if (!id) return toast('Crea o selecciona una observación antes de cargar una fotografía.');
+  try {
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 3 * 1024 * 1024 || file.size < 12) throw new Error('Selecciona un JPG, PNG o WebP original de hasta 3 MB. Los accesos directos .lnk no son imágenes.');
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const valid = file.type === 'image/jpeg' ? bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255 : file.type === 'image/png' ? [137,80,78,71,13,10,26,10].every((n, i) => bytes[i] === n) : String.fromCharCode(...bytes.slice(0, 4)) === 'RIFF' && String.fromCharCode(...bytes.slice(8, 12)) === 'WEBP';
+    if (!valid) throw new Error('El contenido no coincide con el formato indicado.');
+    const photo = await new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.onerror = () => reject(new Error('No se pudo leer la imagen.')); reader.readAsDataURL(file); });
+    await new Promise((resolve, reject) => { const img = new Image(); img.onload = () => img.width * img.height <= 40_000_000 ? resolve() : reject(new Error('La foto supera 40 megapíxeles.')); img.onerror = () => reject(new Error('No se pudo abrir la imagen.')); img.src = photo; });
+    if (pendingAnalysis.has(id)) throw new Error('Espera a que termine el análisis de esta foto antes de cambiarla.');
+    const photoHash = globalThis.crypto?.subtle ? Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))).map(n => n.toString(16).padStart(2, '0')).join('') : null;
+    const duplicate = findDuplicate(records, { ...records.find(r => r.id === id), photo, photoHash });
+    if (duplicate && !confirm(`Esta imagen o una ubicación equivalente ya está en ${duplicate.id}. ¿Conservarla también en esta observación?`)) return;
+    if (await update(id, { photo, photoHash, analysis: null, analysisOrigin: null, status: 'Evidencia cargada' })) toast(`Fotografía guardada en ${id}.`);
+  } catch (error) { toast(error.message); }
+}
