@@ -17,3 +17,9 @@ test('duplicados por foto o ubicación cercana solo en el mismo recorrido', () =
   assert.equal(findDuplicate([r], { ...r, id: 'b', routeId: 'otra' }), undefined);
   assert.equal(findDuplicate([r], { ...r, id: 'a' }), undefined);
 });
+test('historial conserva evidencias previas y registra cambios sin alterar el original', () => {
+  const old = { id: 'a', category: 'pendiente', photo: 'foto-original', analysis: { summary: 'PRUEBA' } };
+  const next = applyRecordChange(old, { category: 'bache', photo: 'foto-nueva' }, '2026-10-26T00:00:00.000Z');
+  assert.equal(next.history.length, 1); assert.equal(next.evidenceHistory[0].photo, 'foto-original'); assert.equal(old.category, 'pendiente');
+  assert.equal(applyRecordChange(old, { photo: null }).evidenceHistory[0].photo, 'foto-original');
+});
