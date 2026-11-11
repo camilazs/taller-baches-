@@ -245,3 +245,4 @@ async function saveRoute(points) {
   try { await persist(route, 'routes'); routes = routes.map(r => r.id === route.id ? route : r); tracing = false; tracePoints = []; render(); map?.fitBounds(points, { padding: [40, 40] }); toast('Trazado guardado. No se ajusta automáticamente a la red de calles.'); } catch { toast('No se pudo guardar el trazado.'); }
 }
 $('import-route').onclick = () => { try { void saveRoute(parseRoute($('route-geojson').value)); } catch (error) { toast(error.message); } };
+$('trace-route').onclick = () => { if (!map) return toast('El mapa no está disponible.'); tracing = !tracing; placing = null; tracePoints = []; $('save-trace').hidden = !tracing; $('map-notice').textContent = tracing ? 'Pulsa en el mapa los puntos de tu ruta, en orden, y después «Guardar trazado».' : 'Trazado manual cancelado; los datos guardados se conservan.'; };
