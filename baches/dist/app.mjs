@@ -42,3 +42,34 @@ async function update(id, patch) {
   try { await persist(next); records = records.map(r => r.id === id ? next : r); render(); return true; }
   catch { toast('No se pudo guardar el cambio. Comprueba el almacenamiento del navegador.'); return false; }
 }
+function render() {
+  try { localStorage.setItem('via-clara:active-route', activeRouteId); } catch {}
+  const scoped = routeRecords();
+  $('total').textContent = scoped.length;
+  const baches = scoped.filter(r => r.category === 'bache').length;
+  $('potholes').textContent = baches; $('others').textContent = scoped.length - baches;
+  $('located').replaceChildren(document.createTextNode(`${scoped.filter(hasLocation).length} `), el('em', `/ ${scoped.length}`));
+  $('route-select').replaceChildren(...routes.map(r => { const option = el('option', r.name); option.value = r.id; return option; })); $('route-select').value = activeRouteId;
+  $('route-state').textContent = activeRoute().status === 'pending' ? 'Ruta definitiva aún no proporcionada. Configúrala cuando esté confirmada.' : activeRoute().status === 'draft' ? 'BORRADOR ANTERIOR · No es la ruta definitiva y no tiene trazado confirmado.' : 'Ruta introducida por el usuario · pendiente de verificación en campo.';
+  $('route-origin').textContent = activeRouteId === DRAFT_ROUTE_ID ? 'Parque Bolívar · borrador' : 'Origen por confirmar';
+  $('route-destination').textContent = activeRouteId === DRAFT_ROUTE_ID ? 'UCC · borrador' : 'Destino por confirmar';
+  $('route-summary').textContent = activeRouteId === DRAFT_ROUTE_ID ? routeInfo[direction] : activeRoute().name;
+  $('save-trace').hidden = !tracing;
+  const visible = filtered();
+  if (visible.length && !visible.some(r => r.id === selected)) { selected = visible[0].id; placing = null; }
+  $('visible-count').textContent = `${visible.length} ${visible.length === 1 ? 'observación' : 'observaciones'}`; $('list-count').textContent = String(visible.length).padStart(2, '0');
+  $('records').replaceChildren();
+  if (!visible.length) $('records').append(el('p', 'No hay observaciones con estos filtros.', 'empty-list'));
+  for (const r of visible) {
+    const button = el('button', undefined, `record ${r.id === selected ? 'selected' : ''}`);
+    button.type = 'button'; button.setAttribute('aria-pressed', String(r.id === selected));
+    button.append(el('span', String(r.order).padStart(2, '0'), 'number'));
+    const copy = el('span', undefined, 'record-copy'); copy.append(el('strong', r.title));
+    const type = el('small'); type.append(el('i', undefined, `dot ${r.category}`), document.createTextNode(`${categories[r.category]} · ${r.id}`));
+    copy.append(type, el('small', hasLocation(r) ? '● Ubicación registrada' : '○ Ubicación pendiente', 'record-status')); button.append(copy);
+    button.onclick = () => { cameraControls.stop(); selected = r.id; placing = null; render(); if (hasLocation(r) && map) map.setView([r.lat, r.lng], 17); };
+    $('records').append(button);
+  }
+  document.querySelectorAll('[data-direction]').forEach(b => { const active = b.dataset.direction === direction; b.classList.toggle('active', active); b.setAttribute('aria-pressed', String(active)); });
+  renderDetail(); renderMap();
+}
