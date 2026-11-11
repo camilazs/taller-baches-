@@ -9,3 +9,15 @@ export function validateImage(image) {
   if (!valid) throw new Error('El contenido no coincide con el formato de la imagen.');
   return match[1];
 }
+export function validateAnalysis(data) {
+  if (!data || typeof data !== 'object' || !categories.includes(data.category) || !['baja', 'media', 'alta'].includes(data.confidence) || typeof data.summary !== 'string' || data.summary.length < 1 || data.summary.length > 1600 || !Array.isArray(data.warnings) || data.warnings.length > 8 || data.warnings.some(x => typeof x !== 'string' || x.length > 500)) throw new Error('Respuesta de IA inválida.');
+  if (!Array.isArray(data.detections) || data.detections.length > 20) throw new Error('Faltan las detecciones visuales o superan el límite.');
+  for (const detection of data.detections) {
+    if (!detection || !categories.slice(0, 4).includes(detection.category) || !['baja', 'media', 'alta'].includes(detection.confidence) || typeof detection.description !== 'string' || detection.description.length > 600 || !detection.box) throw new Error('Detección visual inválida.');
+    const { x, y, width, height } = detection.box;
+    if (![x, y, width, height].every(Number.isFinite) || x < 0 || y < 0 || width <= 0 || height <= 0 || x + width > 1.00001 || y + height > 1.00001) throw new Error('La región detectada sale de la imagen.');
+  }
+  if (['sin_hallazgo', 'no_concluyente'].includes(data.category) && data.detections.length) throw new Error('El análisis contradice las regiones detectadas.');
+  if (categories.slice(0, 4).includes(data.category) && !data.detections.some(d => d.category === data.category)) throw new Error('La categoría principal no aparece en las detecciones.');
+  return { category: data.category, confidence: data.confidence, summary: data.summary, warnings: data.warnings, detections: data.detections };
+}
