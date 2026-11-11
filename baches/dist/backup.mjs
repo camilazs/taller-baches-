@@ -12,3 +12,6 @@ function validatePhoto(photo) {
   const valid = mime === 'image/jpeg' ? bytes.charCodeAt(0) === 255 && bytes.charCodeAt(1) === 216 && bytes.charCodeAt(2) === 255 : mime === 'image/png' ? [137,80,78,71,13,10,26,10].every((n, i) => bytes.charCodeAt(i) === n) : bytes.slice(0, 4) === 'RIFF' && bytes.slice(8, 12) === 'WEBP';
   if (!valid) throw new Error('La firma de una fotografía del respaldo no es válida.');
 }
+function coordinates(item) {
+  if ((item.lat != null || item.lng != null) && !validCoordinates(item.lat, item.lng)) throw new Error('El respaldo contiene coordenadas inválidas.');
+}
