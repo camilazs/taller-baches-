@@ -62,3 +62,9 @@ export function planRestore(value, existingRecords, existingRoutes, newId = () =
   for (const r of records) if (!knownRoutes.has(r.routeId)) { routes.push({ id: r.routeId, name: 'Recorrido recuperado', points: [], status: 'pending' }); knownRoutes.add(r.routeId); }
   return { records, routes, skipped };
 }
+export function toGeoJSON(records, routes) {
+  return { type: 'FeatureCollection', features: [
+    ...routes.filter(r => r.points?.length >= 2).map(r => ({ type: 'Feature', geometry: { type: 'LineString', coordinates: r.points.map(([lat,lng]) => [lng,lat]) }, properties: { id: r.id, name: r.name, status: r.status, origin: 'Trazado aportado por el usuario' } })),
+    ...records.flatMap(r => locatedDetections(r).map(p => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [p.lng,p.lat] }, properties: { recordId: r.id, routeId: r.routeId, title: r.title, category: p.category, detectionIndex: p.index, inheritedLocation: p.inherited, source: r.analysisOrigin || r.source || 'Sin verificar', status: r.status } }))),
+  ] };
+}
