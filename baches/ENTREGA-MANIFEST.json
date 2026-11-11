@@ -1,0 +1,105 @@
+{
+  "scope": "Copia para GitHub, sin dirección particular ni credenciales",
+  "files": [
+    {
+      "path": "baches/.env.example",
+      "sha256": "53ec8d149b5c88138330e61333b11501dada7bce64f36051f97fdc4ce8967d48"
+    },
+    {
+      "path": "baches/.gitignore",
+      "sha256": "ad11d65f89bf33beec110eb452d913342062edd33a9ff7fefdbdf4bd18bf0898"
+    },
+    {
+      "path": "baches/package.json",
+      "sha256": "9931c7713bd3974e982756f10be346a49a0da007f4c48b5d514f699003735f68"
+    },
+    {
+      "path": "baches/server.mjs",
+      "sha256": "072140099b8838dc776a938208392314c11a76c0cf081a716c91ab86e8755115"
+    },
+    {
+      "path": "baches/vision.mjs",
+      "sha256": "7cbd0d38a92cdb1b329e2be5e580aee4141f4311c3fff35958a2d8d1b582fecf"
+    },
+    {
+      "path": "baches/INICIAR.cmd",
+      "sha256": "f16cf4720a3f25cbecea04e6c2c3d9298571a24b4129c3a2e85e6d28e6603270"
+    },
+    {
+      "path": "baches/README.md",
+      "sha256": "fa062a1553e3048472599174a31295eb76634e065dd873efc6288791b8ef77d3"
+    },
+    {
+      "path": "baches/VALIDACION.md",
+      "sha256": "cc9a7c3c8493f54725f7bfb637eacb441736e868e7c52ce0f48ec77af6d19fad"
+    },
+    {
+      "path": "baches/ENTREGA.md",
+      "sha256": "546cde056c5feacbe1ce8153e9b5b01b844531c70664cccae927cd9cef0b848c"
+    },
+    {
+      "path": "baches/GIT-CAMILA.md",
+      "sha256": "710e921ab6ba9091f392fa170a6653e7db493fd6a86ed915356af07a88a67b5c"
+    },
+    {
+      "path": "baches/dist/app.mjs",
+      "sha256": "5449b43954963258d127f87f2793dbbd87006826ac7ac49851432611f3f6b27a"
+    },
+    {
+      "path": "baches/dist/backup.mjs",
+      "sha256": "5a4f1f6227bb4fd87a2f7f392b5a0af77bf964c49358a5f68ccd193fa395564b"
+    },
+    {
+      "path": "baches/dist/capture.mjs",
+      "sha256": "dbea4d4619d18d536a7f72d4c1b166e2a3dc972e184ba58ea88e383dae42129f"
+    },
+    {
+      "path": "baches/dist/index.html",
+      "sha256": "668d9975cba61632587affb70b69520184122b46159c4620983af3f97d928aad"
+    },
+    {
+      "path": "baches/dist/records.mjs",
+      "sha256": "16d54dc3ca73fc6a4a7ed1be0e72df9e1f4f040544d287bacc96bc48163fc9cd"
+    },
+    {
+      "path": "baches/dist/styles.css",
+      "sha256": "38ba9a62c279a8f926191101e28f476b56eea490639f4e7bd853df22ecfb4306"
+    },
+    {
+      "path": "baches/dist/tracking.mjs",
+      "sha256": "6d8bf6e649c6f55f8d51873f8dbd53075c446a3462dd7f92725e1d5a378f3169"
+    },
+    {
+      "path": "baches/tests/app.test.mjs",
+      "sha256": "02772dba38323abc600a8a2fd3d450ac88298fe1b47fbff071b7a767e1d7792f"
+    },
+    {
+      "path": "baches/tests/backup.test.mjs",
+      "sha256": "5af2cd4f7d30c0d0b355093a9475ae6831124850200f4f3add1495b091244933"
+    },
+    {
+      "path": "baches/tests/tracking.test.mjs",
+      "sha256": "c3a46a575fced8995de7dc1c57a114939c27a7896e0c34f6e7cd48e26ee6fe12"
+    },
+    {
+      "path": "baches/scripts/crear-entrega.ps1",
+      "sha256": "ad9a43aa148e77b7693b32e4769c6b3b48ef2e2a44011dddc3ac9bf9ef193f92"
+    },
+    {
+      "path": "baches/docs/prototipo.jpg",
+      "sha256": "e2562aebda4497451532a976f7931aa2e5bb367070edff7bc94d0043d438b63f"
+    },
+    {
+      "path": "baches/docs/ruta-pendiente-movil.jpg",
+      "sha256": "a025c542161d3b45a4dba3f0b289db5d10be1577bbdb095471045dd0ca3aba2d"
+    },
+    {
+      "path": "baches/PUBLICACION.md",
+      "sha256": "87a45c13c4a7e6f83fec8ecad6fb47ef3d3f4540234010752955d2fabaa440eb"
+    },
+    {
+      "path": "README.md",
+      "sha256": "c74581644c95eac8807a0a381a46238437e4c53fc50f1c23d4f9f38552f552d6"
+    }
+  ]
+}
