@@ -12,3 +12,4 @@ const pendingAnalysis = new Set();
 function toast(message) { $('toast').textContent = message; $('toast').hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => $('toast').hidden = true, 6500); }
 function current() { return records.find(r => r.id === selected); }
 function activeRoute() { return routes.find(r => r.id === activeRouteId) || routes[0]; }
+function routeRecords() { return records.filter(r => (r.routeId || DRAFT_ROUTE_ID) === activeRouteId); }
