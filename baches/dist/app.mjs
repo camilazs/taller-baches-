@@ -10,3 +10,4 @@ let routes = structuredClone(initialRoutes), activeRouteId = PENDING_ROUTE_ID, t
 let map, markers, lines, toastTimer;
 const pendingAnalysis = new Set();
 function toast(message) { $('toast').textContent = message; $('toast').hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => $('toast').hidden = true, 6500); }
+function current() { return records.find(r => r.id === selected); }
