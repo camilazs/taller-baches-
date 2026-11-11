@@ -23,3 +23,9 @@ test('historial conserva evidencias previas y registra cambios sin alterar el or
   assert.equal(next.history.length, 1); assert.equal(next.evidenceHistory[0].photo, 'foto-original'); assert.equal(old.category, 'pendiente');
   assert.equal(applyRecordChange(old, { photo: null }).evidenceHistory[0].photo, 'foto-original');
 });
+test('hallazgos usan coordenadas propias o herencia explícita; no infieren GPS desde cajas', () => {
+  const record = { lat: null, lng: null, analysis: { detections: [{ category: 'bache', box: { x: .2, y: .2, width: .2, height: .2 } }] } };
+  assert.deepEqual(locatedDetections(record), []);
+  const inherited = locatedDetections({ ...record, lat: 0, lng: 0 }); assert.equal(inherited[0].inherited, true);
+  record.analysis.detections[0].location = { lat: 1, lng: 1 }; assert.equal(locatedDetections(record)[0].inherited, false);
+});
