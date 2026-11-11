@@ -174,3 +174,8 @@ for (const id of ['photo', 'camera']) $(id).onchange = e => { upload(e.target.fi
 const cameraControls = setupCapture(upload, toast);
 $('save-description').onclick = () => { if (!selected) return; const title = $('edit-title').value.trim(), description = $('edit-description').value.trim(); if (!title || title.length > 120 || description.length > 1600) return toast('Escribe un título de hasta 120 caracteres y una descripción de hasta 1600.'); update(selected, { title, description }); };
 $('remove-photo').onclick = () => { if (pendingAnalysis.has(selected)) return toast('Espera a que termine el análisis antes de quitar esta foto.'); update(selected, { photo: null, analysis: null, status: 'Pendiente de evidencia' }); };
+$('save-location').onclick = async () => {
+  const lat = Number($('lat').value), lng = Number($('lng').value);
+  if (!$('lat').value.trim() || !$('lng').value.trim() || !Number.isFinite(lat) || !Number.isFinite(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) return toast('Escribe una latitud y longitud válidas.');
+  if (await savePoint(selected, null, lat, lng, 'Coordenadas introducidas manualmente')) { if (map) map.setView([lat, lng], 17); toast('Coordenadas guardadas.'); }
+};
