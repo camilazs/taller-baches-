@@ -204,3 +204,8 @@ $('export').onclick = () => {
   const payload = { version: 2, exportedAt: new Date().toISOString(), routeInfo, routes, activeRouteId, notes: ['El inventario anterior es un borrador, no la ruta definitiva ni detecciones de IA.', 'Coordenadas aportadas por el usuario, no verificadas en campo.', 'Las cajas en la foto no proporcionan por sí mismas coordenadas geográficas.'], records };
   const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })); const a = el('a'); a.href = url; a.download = 'via-clara-pasto.json'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); toast('Exportación completa, incluidas las fotos cargadas.');
 };
+$('export-map').onclick = () => {
+  const url = URL.createObjectURL(new Blob([JSON.stringify(toGeoJSON(routeRecords(), [activeRoute()]), null, 2)], { type: 'application/geo+json' }));
+  const link = el('a'); link.href = url; link.download = 'via-clara-recorrido.geojson'; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+  toast('Mapa exportado. Solo incluye coordenadas registradas; no incluye las fotografías.');
+};
