@@ -247,3 +247,9 @@ async function saveRoute(points) {
 $('import-route').onclick = () => { try { void saveRoute(parseRoute($('route-geojson').value)); } catch (error) { toast(error.message); } };
 $('trace-route').onclick = () => { if (!map) return toast('El mapa no está disponible.'); tracing = !tracing; placing = null; tracePoints = []; $('save-trace').hidden = !tracing; $('map-notice').textContent = tracing ? 'Pulsa en el mapa los puntos de tu ruta, en orden, y después «Guardar trazado».' : 'Trazado manual cancelado; los datos guardados se conservan.'; };
 $('save-trace').onclick = () => saveRoute(tracePoints);
+$('new-record').onclick = async () => {
+  cameraControls.stop();
+  const now = new Date().toISOString();
+  const record = { id: crypto.randomUUID(), routeId: activeRouteId, direction, order: routeRecords().filter(r => r.direction === direction).length + 1, title: 'Nueva observación vial', description: 'Captura o carga una fotografía y confirma la ubicación.', category: 'pendiente', lat: null, lng: null, photo: null, analysis: null, source: 'Captura del usuario · pendiente de análisis', status: 'Pendiente de evidencia', createdAt: now, history: [] };
+  try { await persist(record); records.push(record); selected = record.id; $('category').value = 'all'; $('location-filter').value = 'all'; $('search').value = ''; render(); $('detail').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch { toast('No se pudo crear la observación.'); }
+};
