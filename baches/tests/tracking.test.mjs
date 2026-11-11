@@ -10,3 +10,10 @@ test('ruta definitiva vacía; solo se admite trazado explícito con coordenadas 
   assert.throws(() => parseRoute('{"type":"Point","coordinates":[0,0]}'));
   assert.equal(validCoordinates(null, 0), false);
 });
+test('duplicados por foto o ubicación cercana solo en el mismo recorrido', () => {
+  const r = { id: 'a', routeId: 'route1', category: 'bache', lat: 0, lng: 0, photo: 'foto-prueba' };
+  assert.equal(findDuplicate([r], { ...r, id: 'b' }).id, 'a');
+  assert.equal(findDuplicate([r], { ...r, id: 'b', photo: null, lat: .000001 }).id, 'a');
+  assert.equal(findDuplicate([r], { ...r, id: 'b', routeId: 'otra' }), undefined);
+  assert.equal(findDuplicate([r], { ...r, id: 'a' }), undefined);
+});
