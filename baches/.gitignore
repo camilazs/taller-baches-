@@ -1,6 +1,7 @@
 .env
 .env.*
 !.env.example
+!.env.gemini.example
 data/
 node_modules/
 *.lnk

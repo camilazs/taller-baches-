@@ -2,8 +2,12 @@
   "scope": "Copia para GitHub, sin dirección particular ni credenciales; fotografías viales originales y cartografía de referencia",
   "files": [
     {
-      "path": "baches/docs/mapa-margarita-pinta.png",
-      "sha256": "77f36d939a034368b23b34f90b0bd4d8a9bc8dca987ed56a7f6bc548f1ebd933"
+      "path": "baches/.env.gemini.example",
+      "sha256": "49ce0965dc3d7fc1187c5986db750c086752494e9b2c31978f06b3c91e4a222b"
+    },
+    {
+      "path": "baches/tests/gemini.test.mjs",
+      "sha256": "3132748f6eadb1b575e2a4b6e57cd8c6aa28e570545f557825b0d74df2892116"
     },
     {
       "path": "README.md",
@@ -15,7 +19,7 @@
     },
     {
       "path": "baches/.gitignore",
-      "sha256": "ad11d65f89bf33beec110eb452d913342062edd33a9ff7fefdbdf4bd18bf0898"
+      "sha256": "c9b0d4bd33d185e6d65cd6e752e138368fec03feb34f0bb6f9b4c6923535f95e"
     },
     {
       "path": "baches/ENTREGA.md",
@@ -35,7 +39,7 @@
     },
     {
       "path": "baches/README.md",
-      "sha256": "e575d9c976732d01d7f1fca714509177ebf2d27756969fb331ee6288b7f1caa7"
+      "sha256": "f96ef5ae2510d3769ec7dcc175e9b5e700f29f94c10f25c8aa45536beedf0ef1"
     },
     {
       "path": "baches/VALIDACION.md",
@@ -368,6 +372,10 @@
     {
       "path": "baches/docs/galeria-real-movil.png",
       "sha256": "15fe11d066fc0794ac6fd8e3d3a7de3a2f1c914033ed51ec2ed9d098af426ceb"
+    },
+    {
+      "path": "baches/docs/mapa-margarita-pinta.png",
+      "sha256": "77f36d939a034368b23b34f90b0bd4d8a9bc8dca987ed56a7f6bc548f1ebd933"
     },
     {
       "path": "baches/docs/mapa-real-movil.png",

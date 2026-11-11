@@ -84,7 +84,7 @@ Las pruebas verifican inventario, validación de imágenes, contrato del proveed
 - Leaflet 1.9.4 se distribuye localmente bajo licencia BSD-2-Clause; sus avisos se conservan en el archivo original.
 - Los círculos discontinuos son sectores aproximados del relato. No aumentan el conteo de observaciones con GPS ni se exportan como detecciones exactas.
 - El manifiesto de fotografías incluye el nombre original y hash SHA-256. Las fotos con clasificación visual preliminar están marcadas como no IA.
-- Validación automatizada: 16 pruebas, incluyendo integridad de 64 fotos y contratos HTTP de los recursos del mapa. Validación real de IA pendiente de `AI_API_KEY`.
+- Validación automatizada: 17 pruebas, incluyendo integridad de 64 fotos y contratos HTTP de los recursos del mapa. Validación real de IA pendiente de `AI_API_KEY`.
 
 
 ## Continuación: asociación segura y activación de IA
@@ -94,3 +94,12 @@ La asociación entre fotografía y reporte ahora se guarda en una sola transacci
 Para activar detección real, completa `AI_API_KEY` en `.env.local` (archivo ignorado por Git). Configura un modelo de visión disponible en tu cuenta mediante `AI_MODEL` y reinicia `npm.cmd start`. El proyecto no incluye claves ni créditos. No escribas la clave en el chat ni en el navegador. La integración sigue sin validación real hasta contar con esa configuración.
 
 Fuente del desvío: [Margarita Pinta en Rappi](https://www.rappi.com.co/restaurantes/900178500-margarita-pinta), campo público GeoCoordinates, consultado el 11 de noviembre de 2026.
+
+
+## Proveedor Gemini preparado
+
+Se verificó en la documentación oficial que Gemini ofrece visión, salidas estructuradas y un endpoint compatible. Plantilla: `.env.gemini.example`. Modelo propuesto: `gemini-3.5-flash-lite`; endpoint `https://generativelanguage.googleapis.com/v1beta/openai`. El nivel gratuito tiene cuotas y utiliza contenido para mejorar productos según las condiciones de Google. No se activa facturación desde el proyecto.
+
+La cuenta y clave se crean en https://aistudio.google.com/apikey. El usuario debe iniciar sesión en su propia cuenta y revisar las condiciones de Google. La clave real solo se guarda en `.env.local`, ignorado por Git. No hay una clave incluida ni se ha validado todavía una llamada real. La prueba `gemini.test.mjs` verifica el contrato mediante HTTP simulado, sin imágenes enviadas ni consumo de cuota.
+
+Fuentes oficiales consultadas el 11 de noviembre de 2026: https://aistudio.google.com/docs/openai, https://aistudio.google.com/docs/models/gemini-3.5-flash-lite, https://aistudio.google.com/docs/pricing#gemini-3.5-flash-lite.
