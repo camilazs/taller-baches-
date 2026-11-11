@@ -171,3 +171,4 @@ document.querySelectorAll('[data-direction]').forEach(button => button.onclick =
 for (const id of ['search', 'category', 'location-filter']) $(id).addEventListener(id === 'search' ? 'input' : 'change', render);
 $('edit-category').onchange = async e => { if (await update(selected, { category: e.target.value, status: 'Clasificación revisada manualmente' })) toast('Clasificación guardada.'); };
 for (const id of ['photo', 'camera']) $(id).onchange = e => { upload(e.target.files[0]); e.target.value = ''; };
+const cameraControls = setupCapture(upload, toast);
