@@ -9,3 +9,4 @@ let records = structuredClone(seedRecords).map(r => ({ ...r, routeId: DRAFT_ROUT
 let routes = structuredClone(initialRoutes), activeRouteId = PENDING_ROUTE_ID, tracing = false, tracePoints = [];
 let map, markers, lines, toastTimer;
 const pendingAnalysis = new Set();
+function toast(message) { $('toast').textContent = message; $('toast').hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => $('toast').hidden = true, 6500); }
