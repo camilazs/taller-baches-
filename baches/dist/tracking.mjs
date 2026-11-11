@@ -26,3 +26,11 @@ export function applyRecordChange(record, patch, timestamp = new Date().toISOStr
   const evidenceHistory = 'photo' in patch && record.photo && patch.photo !== record.photo ? [...(record.evidenceHistory || []), { photo: record.photo, analysis: record.analysis, photoHash: record.photoHash, archivedAt: timestamp }] : record.evidenceHistory || [];
   return { ...record, ...patch, updatedAt: timestamp, history, evidenceHistory };
 }
+export function locatedDetections(record) {
+  if (!record.analysis?.detections?.length) return validCoordinates(record.lat, record.lng) ? [{ lat: record.lat, lng: record.lng, category: record.category, inherited: false, index: null }] : [];
+  return record.analysis.detections.flatMap((d, index) => {
+    const own = d.location && validCoordinates(d.location.lat, d.location.lng);
+    const location = own ? d.location : record;
+    return validCoordinates(location.lat, location.lng) ? [{ lat: location.lat, lng: location.lng, category: d.category, inherited: !own, index }] : [];
+  });
+}
