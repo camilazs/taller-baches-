@@ -16,3 +16,18 @@ function routeRecords() { return records.filter(r => (r.routeId || DRAFT_ROUTE_I
 function hasLocation(r) { return Number.isFinite(r.lat) && Number.isFinite(r.lng); }
 function filtered() { const query = $('search').value.toLocaleLowerCase('es'); return routeRecords().filter(r => r.direction === direction && ($('category').value === 'all' || r.category === $('category').value) && ($('location-filter').value === 'all' || ($('location-filter').value === 'located' ? hasLocation(r) : !hasLocation(r))) && `${r.title} ${r.description} ${r.id}`.toLocaleLowerCase('es').includes(query)); }
 function el(tag, text, className) { const n = document.createElement(tag); if (text !== undefined) n.textContent = text; if (className) n.className = className; return n; }
+
+async function openStorage() {
+  if (!globalThis.indexedDB) throw new Error('El navegador no permite almacenamiento local.');
+  db = await new Promise((resolve, reject) => { const req = indexedDB.open('via-clara-pasto', 2); req.onupgradeneeded = () => { for (const name of ['records', 'routes']) if (!req.result.objectStoreNames.contains(name)) req.result.createObjectStore(name, { keyPath: 'id' }); }; req.onsuccess = () => resolve(req.result); req.onerror = () => reject(req.error); });
+  const saved = await new Promise((resolve, reject) => { const req = db.transaction('records').objectStore('records').getAll(); req.onsuccess = () => resolve(req.result); req.onerror = () => reject(req.error); });
+  records = records.map(seed => {
+    const item = saved.find(r => r.id === seed.id);
+    if (!item) return seed;
+    return { ...seed, ...item, routeId: item.routeId || DRAFT_ROUTE_ID, category: categories[item.category] ? item.category : seed.category, lat: Number.isFinite(item.lat) && Math.abs(item.lat) <= 90 ? item.lat : null, lng: Number.isFinite(item.lng) && Math.abs(item.lng) <= 180 ? item.lng : null, locationSource: item.locationSource, photo: typeof item.photo === 'string' && /^data:image\/(jpeg|png|webp);base64,/.test(item.photo) ? item.photo : null, analysis: item.analysis && analysisLabels[item.analysis.category] && typeof item.analysis.summary === 'string' && Array.isArray(item.analysis.warnings) ? item.analysis : null, status: item.status || seed.status };
+  });
+  records.push(...saved.filter(r => !records.some(seed => seed.id === r.id) && r.id && r.title));
+  const savedRoutes = await new Promise((resolve, reject) => { const req = db.transaction('routes').objectStore('routes').getAll(); req.onsuccess = () => resolve(req.result); req.onerror = () => reject(req.error); });
+  routes = routes.map(seed => savedRoutes.find(r => r.id === seed.id) || seed); routes.push(...savedRoutes.filter(r => !routes.some(seed => seed.id === r.id)));
+  try { const prior = localStorage.getItem('via-clara:active-route'); if (routes.some(r => r.id === prior)) activeRouteId = prior; } catch {}
+}
