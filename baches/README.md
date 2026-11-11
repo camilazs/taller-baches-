@@ -1,0 +1,78 @@
+# Vía Clara · Inventario vial de Pasto
+
+Web local independiente de `taller`. Registra el recorrido Parque Bolívar ↔ Universidad Cooperativa de Colombia, con mapa OpenStreetMap/Leaflet, captura de imágenes y detección visual opcional con IA. No requiere instalar dependencias.
+
+## Estado actualizado: ruta definitiva pendiente
+
+El usuario aclaró que **todavía no proporcionó la ruta definitiva**. El inventario anterior de 33 observaciones se conserva íntegro bajo **Borrador anterior · sin confirmar**. El recorrido activo inicial, **Ruta definitiva pendiente**, no tiene coordenadas ni observaciones inventadas.
+
+Puedes crear recorridos con nombre, importar un GeoJSON `LineString` (coordenadas `[longitud, latitud]`) o pulsar **Trazar en el mapa** y marcar puntos en orden. El trazado solo se guarda al confirmarlo y no se ajusta automáticamente a calles. Las configuraciones anteriores se conservan en el historial del recorrido. Si ida y regreso usan trazados distintos, puedes crear un recorrido para cada uno.
+
+**Nueva observación** crea un registro sin clasificar dentro del recorrido activo. Admite título, descripción, foto, coordenadas, análisis y seguimiento de cambios. Cada región detectada puede ubicarse por separado; mientras no tenga coordenadas propias, solo puede heredar la ubicación aproximada de su captura. Las cajas de píxeles nunca se transforman automáticamente en GPS.
+
+El mapa muestra los hallazgos geolocalizados; seleccionar un marcador abre su ficha y fotografía. El historial conserva cambios y fotografías anteriores al reemplazarlas o retirarlas de la ficha. La comparación SHA-256 de imágenes y la proximidad de reportes de la misma categoría (menos de 3 m, dentro del mismo recorrido) advierten de posibles duplicados. La confirmación permite conservar hallazgos distintos cercanos.
+
+El almacenamiento IndexedDB se actualiza de versión 1 a 2 sin borrar el almacén anterior, añadiendo recorridos y conservando registros previos y nuevas observaciones al recargar. Exportar incluye todos los recorridos, observaciones e historiales. Sigue siendo almacenamiento local de este navegador; no hay sincronización entre dispositivos.
+
+El servidor predeterminado solo escucha en `127.0.0.1`. El diseño se puede probar en pantalla estrecha, pero usarlo físicamente desde otro celular requiere una publicación HTTPS o infraestructura autorizada aparte. No se ha publicado ni abierto el servidor a la red.
+
+**Captura visual:** puedes abrir una cámara en vivo, capturar un fotograma o usar la cámara nativa del celular. La cámara en vivo requiere permiso y HTTPS o localhost. Al cerrar la cámara, ocultar la pestaña o salir se detienen sus pistas; no se envía video al proveedor.
+
+**Detección sobre la imagen:** el análisis devuelve una lista de hasta 20 hallazgos con categorías y cajas normalizadas. La interfaz dibuja esas regiones sobre la fotografía y muestra la descripción y confianza de cada hallazgo. Los baches se cuentan por separado de reductores, desniveles y rampas. Puedes aplicar la categoría principal o la de un hallazgo revisado al reporte seleccionado. Si una foto contiene varios baches, la foto y su lista de detecciones permanecen asociadas a una observación del mapa; no se inventa una ubicación distinta para cada caja.
+
+Las cajas son aproximaciones propuestas por un modelo general de visión, **no un detector vial entrenado y evaluado con este conjunto de imágenes**. No se ha medido precisión/recall. Antes de uso real hace falta etiquetar fotos, revisar regiones y evaluar falsos positivos/negativos. Fuente sobre límites de localización visual: https://developers.openai.com/api/docs/guides/images-vision.
+
+## Ejecutar
+
+Requiere Node.js 22.9 o superior (recomendado 24). Desde esta carpeta:
+
+```powershell
+npm.cmd start
+```
+
+Abrir **http://127.0.0.1:3102**. El servidor escucha solo en este equipo. No abrir `dist/index.html` como archivo: la aplicación necesita el servidor para módulos, almacenamiento y API. Internet es necesario para mapa, Leaflet y fuentes; no existe modo sin conexión completo.
+
+## Recorrido e inventario
+
+El relato del usuario se convirtió en **33 observaciones**, 12 de ida y 21 de regreso: 20 baches, 8 reductores, 4 desniveles y una rampa. Dos “medio baches con un desnivel” se registraron como dos baches parciales para revisión. Un desnivel cercano a otro bache se registró aparte. Los conteos no son validación técnica ni detecciones de IA.
+
+Los registros conservan el orden y las referencias del relato. No se inventaron coordenadas: inicialmente no hay marcadores. Selecciona un reporte, pulsa **Ubicar en mapa** y selecciona el punto; puedes arrastrar el marcador después. También puedes introducir coordenadas o usar GPS **solo si estás físicamente junto al punto reportado**. La precisión GPS se conserva en la descripción del origen. Las coordenadas guardadas son aportadas por el usuario y no están verificadas en campo.
+
+La línea discontinua une solo observaciones consecutivas que ya tengan coordenadas, sin saltar registros pendientes. Es un esquema del orden, no una ruta calculada sobre calles ni un registro GPS. No permite inferir distancia o tiempo de viaje.
+
+El borrador usa Parque Bolívar como referencia general. La dirección particular se omite de esta copia pública. La ruta definitiva está pendiente de confirmar.
+
+Fuentes de referencia de la ciudad, no de coordenadas individuales:
+- UCC: https://www.ucc.edu.co/estudiante/admisiones-registro-cad/Paginas/contacto-darc.aspx (Pasto, calle 18 #45-150).
+- Hotel V1501: https://www.hotelv1501.com/ (Pasto, calle 20 #33-60).
+
+## Fotos y persistencia
+
+La carpeta original contiene **68 accesos directos `.lnk`**, no fotografías. En la revisión sus destinos en Descargas no existían. No se pueden analizar ni reconstruir imágenes a partir del acceso directo. Los accesos se conservan intactos.
+
+Carga un JPG, PNG o WebP original de hasta 3 MB en la ficha correspondiente o usa la cámara de un celular compatible. Se comprueban tipo, firma y decodificación; máximo 40 megapíxeles. La cámara depende del navegador y equipo; no se fuerza en escritorio.
+
+Las fotos, coordenadas, clasificaciones y resultados se guardan en **IndexedDB de este navegador y origen**. No hay cuentas ni almacenamiento compartido. Borrar datos del navegador elimina el trabajo; cambiar de localhost a 127.0.0.1 o de puerto cambia el origen. **Exportar datos** descarga un JSON con todo el inventario y las fotos en base64. **Restaurar respaldo** permite recuperarlo en otro navegador: valida el contenido, omite copias idénticas y conserva versiones en conflicto como registros separados, sin sobrescribir los actuales. El guardado de la restauración es atómico. **Exportar mapa GeoJSON** incluye los recorridos y hallazgos ubicados del recorrido activo, sin fotografías.
+
+La entrega reproducible y su configuración están explicadas en [ENTREGA.md](ENTREGA.md). Para incorporar el proyecto al repositorio confirmado de Camila Zambrano, sigue [GIT-CAMILA.md](GIT-CAMILA.md).
+
+## IA real opcional
+
+El mapa es un inventario: para detectar visualmente un bache se necesita una fotografía. La IA no busca baches en el mapa ni deduce GPS desde una imagen.
+
+Si quieres habilitar el análisis, copia `.env.example` a `.env.local` solo si este último no existe, completa tu propia `AI_API_KEY` y reinicia. Usa `AI_MODEL` disponible en tu cuenta, con visión y salidas estructuradas en Chat Completions. El proveedor se configura con `AI_BASE_URL` (HTTPS salvo localhost). La clave permanece en el servidor. No se han reutilizado credenciales de `taller`.
+
+El botón envía únicamente la foto al proveedor y puede generar cargos de tu cuenta. Sin clave se deshabilita; nunca devuelve una detección simulada. Distingue bache, reductor, desnivel, rampa, sin hallazgo y no concluyente. El análisis se guarda como sugerencia separada; la categoría del inventario solo cambia al pulsar **Aplicar clasificación sugerida**. El resultado no mide profundidad, no certifica seguridad ni sustituye una inspección. No hay reintentos automáticos. Solo un análisis simultáneo; timeout del proveedor 45 s. La integración real está pendiente de validarse con una clave autorizada y una foto original.
+
+El contrato de salida estructurada se contrastó con la documentación oficial de OpenAI: https://developers.openai.com/api/docs/guides/structured-outputs?api-mode=chat.
+
+## Validación
+
+```powershell
+npm.cmd test
+node --check server.mjs
+node --check vision.mjs
+node --check dist/app.mjs
+```
+
+Las pruebas verifican inventario, validación de imágenes, contrato del proveedor mediante HTTP simulado (no IA real), rechazo de resultados incompletos, rutas locales, falta de credenciales y bloqueo de otros orígenes. No se incluyen servicios pagados ni publicación. Para alojarlo en Internet se debe adaptar autenticación, almacenamiento, protección de cuota y despliegue; este servidor es para uso local.
