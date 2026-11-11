@@ -199,3 +199,4 @@ $('analyze').onclick = async () => {
   } catch (error) { toast(error.name === 'TimeoutError' ? 'Se agotó el tiempo del análisis. La fotografía se conserva.' : error.message); }
   finally { busy = false; pendingAnalysis.delete(r.id); renderDetail(); }
 };
+$('apply-analysis').onclick = async () => { const r = current(); if (!r.analysis || !categories[r.analysis.category]) return; if (await update(r.id, { category: r.analysis.category, status: 'Sugerencia de IA aceptada por el usuario' })) toast('Clasificación sugerida aplicada.'); };
