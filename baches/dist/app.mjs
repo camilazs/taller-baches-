@@ -127,3 +127,16 @@ function renderMap() {
   const route = routeRecords().filter(r => r.direction === direction);
   for (let i = 1; i < route.length; i++) if (hasLocation(route[i - 1]) && hasLocation(route[i])) L.polyline([[route[i - 1].lat, route[i - 1].lng], [route[i].lat, route[i].lng]], { color: '#286655', weight: 3, dashArray: '6 7', opacity: .7 }).bindTooltip('Secuencia esquemática de observaciones; no es un trazado GPS').addTo(lines);
 }
+function setupMap() {
+  if (!globalThis.L) { $('map-fallback').hidden = false; return; }
+  map = L.map('map', { scrollWheelZoom: false }).setView([1.221, -77.281], 14);
+  const tiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' }).addTo(map);
+  let errors = 0; tiles.on('tileerror', () => { if (++errors >= 4) { $('map-notice').textContent = 'No se cargan las imágenes del mapa. Revisa la conexión a Internet.'; } });
+  markers = L.layerGroup().addTo(map); lines = L.layerGroup().addTo(map);
+  map.on('click', async e => {
+    if (tracing) { tracePoints.push([+e.latlng.lat.toFixed(6), +e.latlng.lng.toFixed(6)]); renderMap(); return; }
+    if (!placing) return;
+    const target = typeof placing === 'string' ? { id: placing, index: null } : placing;
+    if (await savePoint(target.id, target.index, +e.latlng.lat.toFixed(6), +e.latlng.lng.toFixed(6))) { placing = null; renderDetail(); toast(`Ubicación guardada para ${target.id}.`); }
+  });
+}
