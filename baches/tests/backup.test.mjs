@@ -9,3 +9,12 @@ test('restauración valida datos y rechaza imágenes externas y coordenadas inv�
   assert.throws(() => validateBackup({version:2,routes:[route],records:[{...record,lat:100,lng:0}]}));
   assert.throws(() => validateBackup({version:2,routes:[route],records:[record,record]}));
 });
+test('restauración no sobrescribe conflictos y omite copias idénticas', () => {
+  const data={version:2,routes:[route],records:[record]};
+  assert.equal(planRestore(data,[record],[route]).skipped,1);
+  const restored=planRestore({...data,records:[{...record,title:'Otra versión'}]},[record],[route],()=> 'new-id');
+  assert.equal(restored.records[0].id,'new-id'); assert.equal(record.title,'PRUEBA');
+  assert.equal(planRestore({...data,records:[{...record,title:'Otra versión'}]},[record,...restored.records],[route]).records.length,0);
+  const older=planRestore({version:1,records:[{...record,routeId:undefined}]},[],[]);
+  assert.equal(older.records[0].routeId,'draft-original'); assert.equal(older.routes.length,1);
+});
