@@ -200,3 +200,7 @@ $('analyze').onclick = async () => {
   finally { busy = false; pendingAnalysis.delete(r.id); renderDetail(); }
 };
 $('apply-analysis').onclick = async () => { const r = current(); if (!r.analysis || !categories[r.analysis.category]) return; if (await update(r.id, { category: r.analysis.category, status: 'Sugerencia de IA aceptada por el usuario' })) toast('Clasificación sugerida aplicada.'); };
+$('export').onclick = () => {
+  const payload = { version: 2, exportedAt: new Date().toISOString(), routeInfo, routes, activeRouteId, notes: ['El inventario anterior es un borrador, no la ruta definitiva ni detecciones de IA.', 'Coordenadas aportadas por el usuario, no verificadas en campo.', 'Las cajas en la foto no proporcionan por sí mismas coordenadas geográficas.'], records };
+  const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })); const a = el('a'); a.href = url; a.download = 'via-clara-pasto.json'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); toast('Exportación completa, incluidas las fotos cargadas.');
+};
