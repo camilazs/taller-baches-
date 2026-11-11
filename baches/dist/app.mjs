@@ -31,3 +31,7 @@ async function openStorage() {
   routes = routes.map(seed => savedRoutes.find(r => r.id === seed.id) || seed); routes.push(...savedRoutes.filter(r => !routes.some(seed => seed.id === r.id)));
   try { const prior = localStorage.getItem('via-clara:active-route'); if (routes.some(r => r.id === prior)) activeRouteId = prior; } catch {}
 }
+async function persist(record, store = 'records') {
+  if (!db) throw new Error('Almacenamiento no disponible; exporta tus datos antes de cerrar.');
+  await new Promise((resolve, reject) => { const tx = db.transaction(store, 'readwrite'); tx.objectStore(store).put(structuredClone(record)); tx.oncomplete = resolve; tx.onerror = () => reject(tx.error); tx.onabort = () => reject(tx.error || new Error('No se pudo guardar.')); });
+}
