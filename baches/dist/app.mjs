@@ -8,3 +8,4 @@ const analysisLabels = { ...categories, sin_hallazgo: 'Sin hallazgo visible', no
 let records = structuredClone(seedRecords).map(r => ({ ...r, routeId: DRAFT_ROUTE_ID })), selected = null, direction = 'ida', placing = null, busy = false, configured = false, db;
 let routes = structuredClone(initialRoutes), activeRouteId = PENDING_ROUTE_ID, tracing = false, tracePoints = [];
 let map, markers, lines, toastTimer;
+const pendingAnalysis = new Set();
