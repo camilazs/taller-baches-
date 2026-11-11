@@ -246,3 +246,4 @@ async function saveRoute(points) {
 }
 $('import-route').onclick = () => { try { void saveRoute(parseRoute($('route-geojson').value)); } catch (error) { toast(error.message); } };
 $('trace-route').onclick = () => { if (!map) return toast('El mapa no está disponible.'); tracing = !tracing; placing = null; tracePoints = []; $('save-trace').hidden = !tracing; $('map-notice').textContent = tracing ? 'Pulsa en el mapa los puntos de tu ruta, en orden, y después «Guardar trazado».' : 'Trazado manual cancelado; los datos guardados se conservan.'; };
+$('save-trace').onclick = () => saveRoute(tracePoints);
