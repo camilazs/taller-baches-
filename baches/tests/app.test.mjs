@@ -21,3 +21,18 @@ test('rechaza accesos directos, firma falsa, exceso de tamaño y análisis no v�
   assert.throws(() => validateAnalysis({ category: 'bache', confidence: 'alta', summary: 'PRUEBA', warnings: [], detections: [{ category: 'bache', confidence: 'alta', description: 'PRUEBA', box: { x: .9, y: .2, width: .3, height: .2 } }] }), /región/);
   assert.throws(() => validateAnalysis({ category: 'sin_hallazgo', confidence: 'alta', summary: 'PRUEBA', warnings: [], detections: [{ category: 'bache', confidence: 'alta', description: 'PRUEBA', box: { x: .1, y: .2, width: .3, height: .2 } }] }), /contradice/);
 });
+test('contrato de visión transmite la imagen, valida el resultado y no inventa fallback (HTTP simulado)', async () => {
+  const image = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=';
+  const analysis = { category: 'reductor', confidence: 'media', summary: 'PRUEBA: reductor visible', warnings: ['PRUEBA, no análisis real'], detections: [{ category: 'reductor', confidence: 'media', description: 'PRUEBA: región de un reductor', box: { x: .1, y: .5, width: .8, height: .2 } }] };
+  const result = await analyzeImage(image, async (url, options) => {
+    const body = JSON.parse(options.body);
+    assert.ok(url.endsWith('/chat/completions'));
+    assert.equal(body.messages[1].content[1].image_url.url, image);
+    assert.equal(body.response_format.json_schema.strict, true);
+    assert.ok(body.response_format.json_schema.schema.required.includes('detections'));
+    return { ok: true, json: async () => ({ choices: [{ finish_reason: 'stop', message: { content: JSON.stringify(analysis) } }] }) };
+  });
+  assert.deepEqual(result, analysis);
+  await assert.rejects(() => analyzeImage(image, async () => ({ ok: false, status: 401 })), /Proveedor/);
+  await assert.rejects(() => analyzeImage(image, async () => ({ ok: true, json: async () => ({ choices: [{ finish_reason: 'length', message: { content: '{}' } }] }) })), /incompleto/);
+});
