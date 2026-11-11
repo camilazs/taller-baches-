@@ -15,3 +15,12 @@ function validatePhoto(photo) {
 function coordinates(item) {
   if ((item.lat != null || item.lng != null) && !validCoordinates(item.lat, item.lng)) throw new Error('El respaldo contiene coordenadas inválidas.');
 }
+function validateAnalysis(analysis) {
+  if (analysis == null) return;
+  if (!labels.has(analysis.category) || !text(analysis.summary, 1600) || !Array.isArray(analysis.warnings) || analysis.warnings.some(w => !text(w, 500)) || (analysis.detections != null && !Array.isArray(analysis.detections))) throw new Error('Análisis del respaldo inválido.');
+  for (const d of analysis.detections || []) {
+    const b = d.box;
+    if (!categories[d.category] || !b || ![b.x,b.y,b.width,b.height].every(Number.isFinite) || b.x < 0 || b.y < 0 || b.width <= 0 || b.height <= 0 || b.x + b.width > 1.00001 || b.y + b.height > 1.00001) throw new Error('Región del respaldo inválida.');
+    if (d.location) coordinates(d.location);
+  }
+}
