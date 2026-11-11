@@ -39,3 +39,26 @@ export function validateBackup(value) {
   for (const list of [value.records, routes]) if (new Set(list.map(r => r.id)).size !== list.length) throw new Error('El respaldo repite identificadores.');
   return structuredClone(value);
 }
+export function planRestore(value, existingRecords, existingRoutes, newId = () => crypto.randomUUID()) {
+  const data = validateBackup(value), records = [], routes = [], routeIds = new Map(); let skipped = 0;
+  const canonical = value => value && typeof value === 'object' ? Array.isArray(value) ? value.map(canonical) : Object.fromEntries(Object.keys(value).sort().filter(k => value[k] !== undefined).map(k => [k, canonical(value[k])])) : value;
+  const same = (a, b) => JSON.stringify(canonical(a)) === JSON.stringify(canonical(b));
+  for (const r of data.routes || []) {
+    const current = existingRoutes.find(x => x.id === r.id);
+    if (current && !same(current, r)) {
+      const previousCopy = existingRoutes.find(x => x.restoredFrom === r.id && same({ ...x, id: r.id, name: r.name, restoredFrom: undefined }, r));
+      if (previousCopy) { routeIds.set(r.id, previousCopy.id); continue; }
+      const id = newId(); routeIds.set(r.id, id); routes.push({ ...r, id, name: (r.name + ' · respaldo').slice(0,120), restoredFrom: r.id });
+    } else { routeIds.set(r.id, r.id); if (!current) routes.push(r); }
+  }
+  for (const incoming of data.records) {
+    const record = { ...incoming, routeId: routeIds.get(incoming.routeId) || incoming.routeId || 'draft-original' };
+    const current = existingRecords.find(x => x.id === record.id);
+    if (current && same(current, record)) { skipped++; continue; }
+    if (existingRecords.some(x => x.restoredFrom === record.id && same({ ...x, id: record.id, restoredFrom: undefined }, record))) { skipped++; continue; }
+    records.push(current ? { ...record, id: newId(), restoredFrom: record.id } : record);
+  }
+  const knownRoutes = new Set([...existingRoutes, ...routes].map(r => r.id));
+  for (const r of records) if (!knownRoutes.has(r.routeId)) { routes.push({ id: r.routeId, name: 'Recorrido recuperado', points: [], status: 'pending' }); knownRoutes.add(r.routeId); }
+  return { records, routes, skipped };
+}
