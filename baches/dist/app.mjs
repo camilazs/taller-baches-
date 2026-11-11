@@ -233,3 +233,8 @@ $('route-select').onchange = e => {
   try { localStorage.setItem('via-clara:active-route', activeRouteId); } catch {}
   render(); if (map && activeRoute().points?.length >= 2) map.fitBounds(activeRoute().points, { padding: [40, 40] }); else if (map) map.setView([1.221, -77.281], 14);
 };
+$('new-route').onclick = async () => {
+  const name = $('route-name').value.trim(); if (!name || name.length > 120) return toast('Escribe un nombre de recorrido de hasta 120 caracteres.');
+  const route = { id: crypto.randomUUID(), name, status: 'pending', points: [], createdAt: new Date().toISOString() };
+  try { await persist(route, 'routes'); routes.push(route); activeRouteId = route.id; selected = null; render(); toast('Recorrido creado sin coordenadas. Configura su trazado cuando tengas la ruta definitiva.'); } catch { toast('No se pudo guardar el recorrido.'); }
+};
