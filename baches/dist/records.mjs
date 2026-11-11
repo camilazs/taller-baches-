@@ -37,3 +37,9 @@ const regreso = [
   ['bache', 'Llegada al parque Bolívar', 'Carrera 7, al llegar al destino.'],
 ];
 export const categories = { bache: 'Bache', reductor: 'Reductor', desnivel: 'Desnivel', rampa: 'Rampa', pendiente: 'Sin clasificar' };
+export const routeInfo = {
+  city: 'Pasto, Nariño',
+  ida: 'Parque Bolívar → Hospital Departamental → Batallón → Av. Colombia → Av. Santander → Dos puentes → Pedagógico → Av. de los Estudiantes → Hotel V1501 → Margarita Pinta → Morasurco → Panamericana → UCC',
+  regreso: 'UCC → Calle 18 → Carrera 40 → Calle 19 → Carrera 31C → Calle 21 → Policía Nacional → Iglesia de la Panadería → Av. Santander → Av. Colombia → Batallón → Av. Bolívar → Parque Bolívar',
+  addressNote: 'La dirección particular se omite de la copia pública. Confirmar la ruta definitiva con el responsable del recorrido.'
+};
