@@ -35,3 +35,10 @@ async function persist(record, store = 'records') {
   if (!db) throw new Error('Almacenamiento no disponible; exporta tus datos antes de cerrar.');
   await new Promise((resolve, reject) => { const tx = db.transaction(store, 'readwrite'); tx.objectStore(store).put(structuredClone(record)); tx.oncomplete = resolve; tx.onerror = () => reject(tx.error); tx.onabort = () => reject(tx.error || new Error('No se pudo guardar.')); });
 }
+async function update(id, patch) {
+  const old = records.find(r => r.id === id);
+  if (!old) return false;
+  const next = applyRecordChange(old, patch);
+  try { await persist(next); records = records.map(r => r.id === id ? next : r); render(); return true; }
+  catch { toast('No se pudo guardar el cambio. Comprueba el almacenamiento del navegador.'); return false; }
+}
