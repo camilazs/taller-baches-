@@ -254,4 +254,4 @@ $('new-record').onclick = async () => {
   try { await persist(record); records.push(record); selected = record.id; $('category').value = 'all'; $('location-filter').value = 'all'; $('search').value = ''; render(); $('detail').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch { toast('No se pudo crear la observación.'); }
 };
 try { await openStorage(); } catch { toast('No se pudo abrir el almacenamiento local. Puedes explorar el inventario, pero no guardar cambios.'); }
-setupMap();
+setupMap(); render();
