@@ -2,7 +2,7 @@ import { seedRecords, categories, routeInfo } from './records.mjs';
 import { setupCapture } from './capture.mjs';
 import { planRestore, toGeoJSON } from './backup.mjs';
 import { readPhotoFile, galleryRecords } from './photos.mjs';
-import { initialRoutes, DRAFT_ROUTE_ID, PENDING_ROUTE_ID, validCoordinates, parseRoute, findDuplicate, applyRecordChange, locatedDetections } from './tracking.mjs';
+import { initialRoutes, DRAFT_ROUTE_ID, PENDING_ROUTE_ID, validCoordinates, parseRoute, findDuplicate, applyRecordChange, planPhotoAssociation, locatedDetections } from './tracking.mjs';
 
 const $ = id => document.getElementById(id);
 const analysisLabels = { ...categories, sin_hallazgo: 'Sin hallazgo visible', no_concluyente: 'No concluyente' };
@@ -53,6 +53,15 @@ async function update(id, patch) {
   const next = applyRecordChange(old, patch);
   try { await persist(next); records = records.map(r => r.id === id ? next : r); render(); return true; }
   catch { toast('No se pudo guardar el cambio. Comprueba el almacenamiento del navegador.'); return false; }
+}
+async function associatePhoto(target,evidence){
+  if(busy||pendingAnalysis.has(target.id)||pendingAnalysis.has(evidence.id))return toast('Espera a que termine el análisis antes de asociar la foto.');
+  try{
+    if(!db)throw new Error('El almacenamiento del navegador no está disponible.');
+    const changes=planPhotoAssociation(target,evidence);
+    await new Promise((resolve,reject)=>{const tx=db.transaction('records','readwrite');for(const record of changes)tx.objectStore('records').put(record);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||new Error('No se pudo guardar la asociación.'));});
+    records=records.map(record=>changes.find(change=>change.id===record.id)||record);render();toast('Fotografía y asociación guardadas juntas. La evidencia anterior se conserva en el historial.');
+  }catch(error){toast('No se cambió la asociación: '+error.message);}
 }
 function render() {
   try { localStorage.setItem('via-clara:active-route', activeRouteId); } catch {}
@@ -122,7 +131,7 @@ function renderGallery() {
       const associate=el('select'); associate.setAttribute('aria-label',`Asociar ${r.title} a un reporte`);
       const placeholder=el('option',r.linkedTo ? `Asociada a ${r.linkedTo}` : 'Asociar foto a un reporte…'); placeholder.value='';associate.append(placeholder);
       for(const target of scoped.filter(item=>item.source?.includes('Relato'))){const option=el('option',`${target.id} · ${target.title}`);option.value=target.id;associate.append(option);}
-      associate.onchange=async()=>{const target=records.find(item=>item.id===associate.value);if(!target)return;if(target.photo&&!confirm('Este reporte ya tiene foto. La anterior se conservará en su historial. ¿Asociar esta fotografía?'))return;if(await update(target.id,{photo:r.photo,photoHash:r.photoHash,analysis:null,status:'Fotografía asociada por el usuario · pendiente de análisis'})){await update(r.id,{linkedTo:target.id});toast(`Foto asociada a ${target.id}.`);}};
+      associate.onchange=async()=>{const target=records.find(item=>item.id===associate.value);if(!target)return;if(target.photo&&!confirm('Este reporte ya tiene foto. La anterior se conservará en su historial. ¿Asociar esta fotografía?'))return;await associatePhoto(target,r);};
       actions.append(associate);
     }
     info.append(actions);card.append(info);$('evidence-cards').append(card);
@@ -171,7 +180,7 @@ function renderMap() {
   if(activeRouteId===DRAFT_ROUTE_ID && pastoRoute && !activeRoute().points?.length){
     const road=pastoRoute[direction];
     if(road?.coordinates?.length)L.polyline(road.coordinates.map(([lng,lat])=>[lat,lng]),{color:direction==='ida'?'#ed713e':'#2675c9',weight:5,opacity:.85}).bindTooltip('Recorrido reconstruido sobre calles reales · confirmar giros en campo').addTo(lines);
-    const labels={calle19b:'Calle 19B',calle18cra40:'Calle 18 / carrera 40',calle19cra40:'Calle 19 / carrera 40',calle19:'Calle 19',parque:'Parque Bolívar',hospital:'Hospital Departamental',batallon:'Batallón Boyacá',colombia:'Av. Colombia',santander:'Av. Santander',puentes:'Sector Dos Puentes',pedagogico:'Colegio Pedagógico',hotel:'Hotel V1501',morasurco:'Calle 22 · Morasurco',cra44:'Carrera 44',ucc:'UCC · carrera 45',cra31:'Carrera 31C',calle21:'Calle 21',panaderia:'Iglesia de la Panadería'};
+    const labels={margarita:'Margarita Pinta · Comuna 9',calle19b:'Calle 19B',calle18cra40:'Calle 18 / carrera 40',calle19cra40:'Calle 19 / carrera 40',calle19:'Calle 19',parque:'Parque Bolívar',hospital:'Hospital Departamental',batallon:'Batallón Boyacá',colombia:'Av. Colombia',santander:'Av. Santander',puentes:'Sector Dos Puentes',pedagogico:'Colegio Pedagógico',hotel:'Hotel V1501',morasurco:'Calle 22 · Morasurco',cra44:'Carrera 44',ucc:'UCC · carrera 45',cra31:'Carrera 31C',calle21:'Calle 21',panaderia:'Iglesia de la Panadería'};
     for(const key of road?.waypointKeys||[]){const [lng,lat]=pastoRoute.references[key];L.circleMarker([lat,lng],{radius:5,color:'#17273e',fillColor:'#fff',fillOpacity:1,weight:2}).bindPopup(`${labels[key]||key}<br>Referencia cartográfica del recorrido; no es un bache detectado.`).addTo(lines);}
     const sectors=new Map();
     for(const report of filtered()){

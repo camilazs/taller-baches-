@@ -4,7 +4,7 @@ Web local independiente de `taller`. Registra el recorrido Parque Bolívar ↔ U
 
 ## Estado actualizado: recorrido y fotografías incorporados
 
-El recorrido activo es **Parque Bolívar ↔ UCC · ida y regreso**, confirmado por el usuario. Conserva los 33 reportes originales. El mapa carga dos trazados sobre calles reales obtenidos de OSRM/OpenStreetMap y referencias buscadas en Nominatim. Son una reconstrucción del relato, no una grabación GPS. Se incorporaron las intersecciones calle 18/carrera 40 y calle 19/carrera 40 y la calle 19B. El desvío Margarita Pinta no pudo resolverse por nombre; los giros requieren confirmación. Las zonas discontinuas permiten consultar reportes del sector sin inventar posiciones exactas de cada bache.
+El recorrido activo es **Parque Bolívar ↔ UCC · ida y regreso**, confirmado por el usuario. Conserva los 33 reportes originales. El mapa carga dos trazados sobre calles reales obtenidos de OSRM/OpenStreetMap y referencias buscadas en Nominatim. Son una reconstrucción del relato, no una grabación GPS. Se incorporaron las intersecciones calle 18/carrera 40 y calle 19/carrera 40 y la calle 19B. El desvío Margarita Pinta (Comuna 9, calle 20 #40A-10) se incorporó usando las coordenadas públicas de su ficha en Rappi; los giros requieren confirmación en campo. Las zonas discontinuas permiten consultar reportes del sector sin inventar posiciones exactas de cada bache.
 
 Se conservan los recorridos creados, las coordenadas manuales y las fotos guardadas en el navegador. El trazado manual tiene prioridad sobre la reconstrucción. Puedes crear recorridos adicionales o importar GeoJSON.
 
@@ -84,4 +84,13 @@ Las pruebas verifican inventario, validación de imágenes, contrato del proveed
 - Leaflet 1.9.4 se distribuye localmente bajo licencia BSD-2-Clause; sus avisos se conservan en el archivo original.
 - Los círculos discontinuos son sectores aproximados del relato. No aumentan el conteo de observaciones con GPS ni se exportan como detecciones exactas.
 - El manifiesto de fotografías incluye el nombre original y hash SHA-256. Las fotos con clasificación visual preliminar están marcadas como no IA.
-- Validación automatizada: 15 pruebas, incluyendo integridad de 64 fotos y contratos HTTP de los recursos del mapa. Validación real de IA pendiente de `AI_API_KEY`.
+- Validación automatizada: 16 pruebas, incluyendo integridad de 64 fotos y contratos HTTP de los recursos del mapa. Validación real de IA pendiente de `AI_API_KEY`.
+
+
+## Continuación: asociación segura y activación de IA
+
+La asociación entre fotografía y reporte ahora se guarda en una sola transacción IndexedDB. Si falla el almacenamiento, no queda una vinculación a medias. El reporte conserva su categoría, sentido y coordenadas, y archiva la foto anterior con su análisis. La imagen nueva no hereda el análisis de la anterior.
+
+Para activar detección real, completa `AI_API_KEY` en `.env.local` (archivo ignorado por Git). Configura un modelo de visión disponible en tu cuenta mediante `AI_MODEL` y reinicia `npm.cmd start`. El proyecto no incluye claves ni créditos. No escribas la clave en el chat ni en el navegador. La integración sigue sin validación real hasta contar con esa configuración.
+
+Fuente del desvío: [Margarita Pinta en Rappi](https://www.rappi.com.co/restaurantes/900178500-margarita-pinta), campo público GeoCoordinates, consultado el 11 de noviembre de 2026.

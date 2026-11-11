@@ -2,6 +2,58 @@
   "scope": "Copia para GitHub, sin dirección particular ni credenciales; fotografías viales originales y cartografía de referencia",
   "files": [
     {
+      "path": "baches/docs/mapa-margarita-pinta.png",
+      "sha256": "77f36d939a034368b23b34f90b0bd4d8a9bc8dca987ed56a7f6bc548f1ebd933"
+    },
+    {
+      "path": "README.md",
+      "sha256": "c74581644c95eac8807a0a381a46238437e4c53fc50f1c23d4f9f38552f552d6"
+    },
+    {
+      "path": "baches/.env.example",
+      "sha256": "53ec8d149b5c88138330e61333b11501dada7bce64f36051f97fdc4ce8967d48"
+    },
+    {
+      "path": "baches/.gitignore",
+      "sha256": "ad11d65f89bf33beec110eb452d913342062edd33a9ff7fefdbdf4bd18bf0898"
+    },
+    {
+      "path": "baches/ENTREGA.md",
+      "sha256": "546cde056c5feacbe1ce8153e9b5b01b844531c70664cccae927cd9cef0b848c"
+    },
+    {
+      "path": "baches/GIT-CAMILA.md",
+      "sha256": "710e921ab6ba9091f392fa170a6653e7db493fd6a86ed915356af07a88a67b5c"
+    },
+    {
+      "path": "baches/INICIAR.cmd",
+      "sha256": "f16cf4720a3f25cbecea04e6c2c3d9298571a24b4129c3a2e85e6d28e6603270"
+    },
+    {
+      "path": "baches/PUBLICACION.md",
+      "sha256": "87a45c13c4a7e6f83fec8ecad6fb47ef3d3f4540234010752955d2fabaa440eb"
+    },
+    {
+      "path": "baches/README.md",
+      "sha256": "e575d9c976732d01d7f1fca714509177ebf2d27756969fb331ee6288b7f1caa7"
+    },
+    {
+      "path": "baches/VALIDACION.md",
+      "sha256": "cc9a7c3c8493f54725f7bfb637eacb441736e868e7c52ce0f48ec77af6d19fad"
+    },
+    {
+      "path": "baches/dist/app.mjs",
+      "sha256": "d6cfae99d1720cf57f241840c49c65483b62e0244c9a48cc8c31e8510f865378"
+    },
+    {
+      "path": "baches/dist/backup.mjs",
+      "sha256": "fd8faaf2912b12ca3a933225496d9373c6f24fd8ea33d21047560fea8c7f38f7"
+    },
+    {
+      "path": "baches/dist/capture.mjs",
+      "sha256": "dbea4d4619d18d536a7f72d4c1b166e2a3dc972e184ba58ea88e383dae42129f"
+    },
+    {
       "path": "baches/dist/evidence/03bf3cb5448fd8cf.jpeg",
       "sha256": "03bf3cb5448fd8cf1ac144db5cfc6634c243e19dfab5c6dd1fa4c58033043854"
     },
@@ -262,12 +314,28 @@
       "sha256": "73067610e42556352092c1ce95ed4f236c1468a9cf9d3b7660bf12aae292aee1"
     },
     {
+      "path": "baches/dist/index.html",
+      "sha256": "fd4270cbd2dcdc41427555e9252088b9d08b7e50afa342d069bc831f9912a492"
+    },
+    {
       "path": "baches/dist/pasto-route.json",
-      "sha256": "393f13ee5b785739893b3b56928a2c72c21aa1ec1cf44a2e92be6e6ec69cc56c"
+      "sha256": "78e1877ba778dfb1fcfb1f77a9556a0e18943dd60a0d8e8890da9245bd06a381"
     },
     {
       "path": "baches/dist/photos.mjs",
       "sha256": "6b14dd6dedb0709e6d92196319d5fe7c153cbb78001eb007eb4ba59772bc31a2"
+    },
+    {
+      "path": "baches/dist/records.mjs",
+      "sha256": "16d54dc3ca73fc6a4a7ed1be0e72df9e1f4f040544d287bacc96bc48163fc9cd"
+    },
+    {
+      "path": "baches/dist/styles.css",
+      "sha256": "2b172c43cb33e8e14c4fb301e99d4bc4bd6787bfbbda4d02ea81f606ab169a1a"
+    },
+    {
+      "path": "baches/dist/tracking.mjs",
+      "sha256": "5cda81945a908075954502e62ee4c969dbd2f40cefa3524bbc729da3c348c3e2"
     },
     {
       "path": "baches/dist/vendor/images/layers-2x.png",
@@ -306,78 +374,6 @@
       "sha256": "830d071131223936763ce4fc81f4755bf3fc3533d4c7096380bd6a084d21b567"
     },
     {
-      "path": "baches/tests/assets.test.mjs",
-      "sha256": "c8603149eba9774638d9725a8c89d04d15c565a4d1d9342cf0d3db4b86b3b399"
-    },
-    {
-      "path": "baches/tests/photos.test.mjs",
-      "sha256": "c5c7db97fef3f60323f61540fe2f4f2fd9b274f5c063a24400fa62fafada6746"
-    },
-    {
-      "path": "README.md",
-      "sha256": "c74581644c95eac8807a0a381a46238437e4c53fc50f1c23d4f9f38552f552d6"
-    },
-    {
-      "path": "baches/.env.example",
-      "sha256": "53ec8d149b5c88138330e61333b11501dada7bce64f36051f97fdc4ce8967d48"
-    },
-    {
-      "path": "baches/.gitignore",
-      "sha256": "ad11d65f89bf33beec110eb452d913342062edd33a9ff7fefdbdf4bd18bf0898"
-    },
-    {
-      "path": "baches/ENTREGA.md",
-      "sha256": "546cde056c5feacbe1ce8153e9b5b01b844531c70664cccae927cd9cef0b848c"
-    },
-    {
-      "path": "baches/GIT-CAMILA.md",
-      "sha256": "710e921ab6ba9091f392fa170a6653e7db493fd6a86ed915356af07a88a67b5c"
-    },
-    {
-      "path": "baches/INICIAR.cmd",
-      "sha256": "f16cf4720a3f25cbecea04e6c2c3d9298571a24b4129c3a2e85e6d28e6603270"
-    },
-    {
-      "path": "baches/PUBLICACION.md",
-      "sha256": "87a45c13c4a7e6f83fec8ecad6fb47ef3d3f4540234010752955d2fabaa440eb"
-    },
-    {
-      "path": "baches/README.md",
-      "sha256": "230ad916a634ede05cdde05a7879af18fa0840874362ab449ef5061599d48517"
-    },
-    {
-      "path": "baches/VALIDACION.md",
-      "sha256": "cc9a7c3c8493f54725f7bfb637eacb441736e868e7c52ce0f48ec77af6d19fad"
-    },
-    {
-      "path": "baches/dist/app.mjs",
-      "sha256": "70aecf8766c205aae5af0b9560be7ff24b8a38f2d28081c7e724710be8f00b9e"
-    },
-    {
-      "path": "baches/dist/backup.mjs",
-      "sha256": "fd8faaf2912b12ca3a933225496d9373c6f24fd8ea33d21047560fea8c7f38f7"
-    },
-    {
-      "path": "baches/dist/capture.mjs",
-      "sha256": "dbea4d4619d18d536a7f72d4c1b166e2a3dc972e184ba58ea88e383dae42129f"
-    },
-    {
-      "path": "baches/dist/index.html",
-      "sha256": "fd4270cbd2dcdc41427555e9252088b9d08b7e50afa342d069bc831f9912a492"
-    },
-    {
-      "path": "baches/dist/records.mjs",
-      "sha256": "16d54dc3ca73fc6a4a7ed1be0e72df9e1f4f040544d287bacc96bc48163fc9cd"
-    },
-    {
-      "path": "baches/dist/styles.css",
-      "sha256": "2b172c43cb33e8e14c4fb301e99d4bc4bd6787bfbbda4d02ea81f606ab169a1a"
-    },
-    {
-      "path": "baches/dist/tracking.mjs",
-      "sha256": "2b51d68599c5b895fec50d38839221c78f214bf0dbcca5ccd699f8227c8e599e"
-    },
-    {
       "path": "baches/docs/prototipo.jpg",
       "sha256": "e2562aebda4497451532a976f7931aa2e5bb367070edff7bc94d0043d438b63f"
     },
@@ -402,12 +398,20 @@
       "sha256": "3c7395e1e461bba7cce6edb65ff746a5466cb0bb5cbcbbd4752784d893d400de"
     },
     {
+      "path": "baches/tests/assets.test.mjs",
+      "sha256": "e47930fd7739ef0b19bd5bdb5548db645c0f0cc89f95c8db13738acf79887d55"
+    },
+    {
       "path": "baches/tests/backup.test.mjs",
       "sha256": "fefdcaf03f4bbf2d20ea90adb2ebad61f7e8695f02ce09d760d4e0eb04ecfc47"
     },
     {
+      "path": "baches/tests/photos.test.mjs",
+      "sha256": "c5c7db97fef3f60323f61540fe2f4f2fd9b274f5c063a24400fa62fafada6746"
+    },
+    {
       "path": "baches/tests/tracking.test.mjs",
-      "sha256": "dd4174c7555a457def746405f67d3df9f915b52e2021150e2aac3459e63d1155"
+      "sha256": "086a397f747fede16553c89d77564dd69a856130ae49b797abc048289b240d2a"
     },
     {
       "path": "baches/vision.mjs",

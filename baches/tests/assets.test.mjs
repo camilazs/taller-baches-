@@ -24,6 +24,8 @@ test('ida y regreso contienen geometría vial de Pasto y separan sectores aproxi
     assert.ok(route[dir].coordinates.every(([lng,lat])=>lng> -77.33&&lng< -77.24&&lat>1.18&&lat<1.26));
   }
   assert.ok(route.ida.waypointKeys.includes('calle19b'));
+  assert.ok(route.ida.waypointKeys.includes('margarita'));
+  assert.equal(route.referenceSources.margarita.url,'https://www.rappi.com.co/restaurantes/900178500-margarita-pinta');
   assert.ok(route.regreso.waypointKeys.includes('calle18cra40'));
   assert.ok(route.regreso.waypointKeys.includes('calle19cra40'));
   for(const report of seedRecords){assert.ok(route.references[route.reportSectors[report.id]]);assert.equal(report.lat,null);assert.equal(report.lng,null);}

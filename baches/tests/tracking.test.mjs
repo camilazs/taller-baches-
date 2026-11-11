@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { initialRoutes, parseRoute, validCoordinates, findDuplicate, applyRecordChange, locatedDetections } from '../dist/tracking.mjs';
+import { initialRoutes, parseRoute, validCoordinates, findDuplicate, applyRecordChange, planPhotoAssociation, locatedDetections } from '../dist/tracking.mjs';
 test('recorrido confirmado conserva coordenadas pendientes; trazado exige coordenadas válidas', () => {
   assert.ok(initialRoutes.every(r => r.points.length === 0));
   assert.equal(initialRoutes[0].status, 'pending');
@@ -24,6 +24,17 @@ test('historial conserva evidencias previas y registra cambios sin alterar el or
   const next = applyRecordChange(old, { category: 'bache', photo: 'foto-nueva' }, '2026-10-26T00:00:00.000Z');
   assert.equal(next.history.length, 1); assert.equal(next.evidenceHistory[0].photo, 'foto-original'); assert.equal(old.category, 'pendiente');
   assert.equal(applyRecordChange(old, { photo: null }).evidenceHistory[0].photo, 'foto-original');
+});
+test('asociar foto conserva el reporte y archiva evidencia anterior sin trasladar GPS ni análisis de otra imagen',()=>{
+  const target={id:'I01',routeId:'r',direction:'ida',category:'reductor',lat:1,lng:2,photo:'anterior',analysis:{summary:'análisis anterior'},history:[]};
+  const evidence={id:'foto',routeId:'r',direction:'sin-asignar',photo:'nueva',photoHash:'hash',lat:3,lng:4,analysis:null};
+  const [report,photo]=planPhotoAssociation(target,evidence,'2026-11-11T00:00:00Z');
+  assert.equal(report.category,'reductor');assert.equal(report.direction,'ida');assert.equal(report.lat,1);assert.equal(report.lng,2);
+  assert.equal(report.photo,'nueva');assert.equal(report.analysis,null);assert.equal(report.analysisOrigin,null);
+  assert.equal(report.evidenceHistory[0].photo,'anterior');assert.equal(report.evidenceHistory[0].analysis.summary,'análisis anterior');
+  assert.equal(photo.linkedTo,'I01');assert.equal(report.evidenceId,'foto');assert.equal(target.photo,'anterior');assert.equal(evidence.linkedTo,undefined);
+  assert.throws(()=>planPhotoAssociation(target,{...evidence,routeId:'otro'}));
+  assert.throws(()=>planPhotoAssociation(target,{...evidence,photo:null}));
 });
 test('hallazgos usan coordenadas propias o herencia explícita; no infieren GPS desde cajas', () => {
   const record = { lat: null, lng: null, analysis: { detections: [{ category: 'bache', box: { x: .2, y: .2, width: .2, height: .2 } }] } };

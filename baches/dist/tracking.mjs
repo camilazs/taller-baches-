@@ -26,6 +26,13 @@ export function applyRecordChange(record, patch, timestamp = new Date().toISOStr
   const evidenceHistory = 'photo' in patch && record.photo && patch.photo !== record.photo ? [...(record.evidenceHistory || []), { photo: record.photo, analysis: record.analysis, photoHash: record.photoHash, archivedAt: timestamp }] : record.evidenceHistory || [];
   return { ...record, ...patch, updatedAt: timestamp, history, evidenceHistory };
 }
+export function planPhotoAssociation(target, evidence, timestamp = new Date().toISOString()) {
+  if (!target || !evidence?.photo || target.id === evidence.id || target.routeId !== evidence.routeId) throw new Error('Selecciona una fotografía y un reporte del mismo recorrido.');
+  return [
+    applyRecordChange(target, { photo: evidence.photo, photoHash: evidence.photoHash || null, analysis: null, analysisOrigin: null, analyzedAt: null, evidenceId: evidence.id, status: 'Fotografía asociada por el usuario · pendiente de análisis' }, timestamp),
+    applyRecordChange(evidence, { linkedTo: target.id }, timestamp),
+  ];
+}
 export function locatedDetections(record) {
   if (!record.analysis?.detections?.length) return validCoordinates(record.lat, record.lng) ? [{ lat: record.lat, lng: record.lng, category: record.category, inherited: false, index: null }] : [];
   return record.analysis.detections.flatMap((d, index) => {
