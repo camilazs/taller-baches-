@@ -167,3 +167,4 @@ async function upload(file) {
   } catch (error) { toast(error.message); }
 }
 for (const [key, label] of Object.entries(categories)) { const option = el('option', label); option.value = key; $('edit-category').append(option); }
+document.querySelectorAll('[data-direction]').forEach(button => button.onclick = () => { cameraControls.stop(); direction = button.dataset.direction; selected = routeRecords().find(r => r.direction === direction)?.id || null; placing = null; render(); });
