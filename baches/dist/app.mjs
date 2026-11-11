@@ -110,3 +110,20 @@ function renderDetail() {
   for (const evidence of r.evidenceHistory || []) { const item = el('li', `Evidencia anterior · ${new Date(evidence.archivedAt).toLocaleString('es-CO')}`); if (evidence.photo) { const img = el('img'); img.src = evidence.photo; img.alt = 'Fotografía anterior conservada en el historial'; img.width = 120; item.append(img); } $('record-history').append(item); }
   $('map-notice').textContent = placing ? `Selecciona en el mapa el lugar de ${typeof placing === 'string' ? placing : placing.id}. Puedes arrastrar el marcador para corregirlo.` : 'Los marcadores registrados se pueden arrastrar para corregir su posición.';
 }
+function renderMap() {
+  if (!map) return;
+  markers.clearLayers(); lines.clearLayers();
+  const visible = filtered();
+  for (const r of visible) for (const point of locatedDetections(r)) {
+    const marker = L.marker([point.lat, point.lng], { draggable: true, icon: L.divIcon({ className: `marker ${point.category}`, html: String(r.order), iconSize: [29, 29], iconAnchor: [14, 14] }) });
+    const popup = el('div'); popup.append(el('strong', `${r.id} · ${r.title}`), el('p', `${categories[point.category]} · ${point.inherited ? 'Posición aproximada heredada de la captura' : 'Ubicación aportada por el usuario'}`));
+    if (r.photo) { const img = el('img'); img.src = r.photo; img.alt = 'Evidencia del reporte'; img.style.width = '150px'; popup.append(img); }
+    marker.bindPopup(popup).addTo(markers); marker.on('click', () => { selected = r.id; placing = null; renderDetail(); });
+    marker.on('dragend', async () => { const p = marker.getLatLng(); await savePoint(r.id, point.index, +p.lat.toFixed(6), +p.lng.toFixed(6)); });
+  }
+  // Conecta solo registros consecutivos ubicados; no salta reportes pendientes.
+  if (activeRoute().points?.length >= 2) L.polyline(activeRoute().points, { color: '#166453', weight: 5 }).bindTooltip('Trazado introducido por el usuario; sin ajuste automático a calles').addTo(lines);
+  if (tracePoints.length >= 2) L.polyline(tracePoints, { color: '#c87631', weight: 3, dashArray: '4 4' }).addTo(lines);
+  const route = routeRecords().filter(r => r.direction === direction);
+  for (let i = 1; i < route.length; i++) if (hasLocation(route[i - 1]) && hasLocation(route[i])) L.polyline([[route[i - 1].lat, route[i - 1].lng], [route[i].lat, route[i].lng]], { color: '#286655', weight: 3, dashArray: '6 7', opacity: .7 }).bindTooltip('Secuencia esquemática de observaciones; no es un trazado GPS').addTo(lines);
+}
