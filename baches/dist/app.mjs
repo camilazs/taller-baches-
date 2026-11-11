@@ -255,3 +255,5 @@ $('new-record').onclick = async () => {
 };
 try { await openStorage(); } catch { toast('No se pudo abrir el almacenamiento local. Puedes explorar el inventario, pero no guardar cambios.'); }
 setupMap(); render();
+try { const response = await fetch('/api/config'); if (!response.ok) throw new Error(); const data = await response.json(); configured = data.configured === true; $('ai-status').textContent = configured ? 'IA disponible' : 'Sin configurar'; renderDetail(); }
+catch { $('ai-status').textContent = 'Servidor no disponible'; }
