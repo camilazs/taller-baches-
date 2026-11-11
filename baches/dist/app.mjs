@@ -244,3 +244,4 @@ async function saveRoute(points) {
   const route = { ...old, points, status: 'user-provided', updatedAt: new Date().toISOString(), history: [...(old.history || []), { at: new Date().toISOString(), points: old.points || [] }] };
   try { await persist(route, 'routes'); routes = routes.map(r => r.id === route.id ? route : r); tracing = false; tracePoints = []; render(); map?.fitBounds(points, { padding: [40, 40] }); toast('Trazado guardado. No se ajusta automáticamente a la red de calles.'); } catch { toast('No se pudo guardar el trazado.'); }
 }
+$('import-route').onclick = () => { try { void saveRoute(parseRoute($('route-geojson').value)); } catch (error) { toast(error.message); } };
