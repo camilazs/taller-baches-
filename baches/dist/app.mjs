@@ -73,3 +73,40 @@ function render() {
   document.querySelectorAll('[data-direction]').forEach(b => { const active = b.dataset.direction === direction; b.classList.toggle('active', active); b.setAttribute('aria-pressed', String(active)); });
   renderDetail(); renderMap();
 }
+function renderDetail() {
+  const r = current(); $('detail').hidden = !r; if (!r) { $('record-history').replaceChildren(); return; }
+  $('detail-id').textContent = `${r.id} / ${r.direction === 'ida' ? 'IDA' : 'REGRESO'} / ${r.source}`;
+  $('detail-title').textContent = r.title; $('detail-description').textContent = r.description; $('detail-category').textContent = categories[r.category]; $('edit-category').value = r.category;
+  $('edit-title').value = r.title; $('edit-description').value = r.description;
+  $('analysis-origin').textContent = r.analysis ? (r.analysisOrigin || 'Análisis previo · origen sin verificar') : 'Pendiente de análisis real. Las observaciones del borrador no son detecciones de IA.';
+  $('photo-empty').hidden = Boolean(r.photo); $('photo-preview').hidden = !r.photo; $('remove-photo').hidden = !r.photo;
+  $('photo-stage').hidden = !r.photo;
+  if (r.photo) $('photo-preview').src = r.photo; else $('photo-preview').removeAttribute('src');
+  $('lat').value = r.lat ?? ''; $('lng').value = r.lng ?? '';
+  $('location-status').textContent = hasLocation(r) ? `Origen: ${r.locationSource || 'Registro manual'}. Posición aportada por el usuario; no verificada en campo.` : 'Sin coordenadas: este reporte aún no aparece en el mapa.';
+  $('analyze').disabled = !r.photo || !configured || busy;
+  $('analyze').textContent = busy ? 'Analizando fotografía…' : '✦ Analizar fotografía';
+  $('analysis').hidden = !r.analysis;
+  if (r.analysis) $('analysis').textContent = `Sugerencia: ${analysisLabels[r.analysis.category]} · Confianza visual ${r.analysis.confidence}\n${r.analysis.summary}\n${r.analysis.warnings.join('\n')}`;
+  $('detection-boxes').replaceChildren(); $('detections-list').replaceChildren();
+  const detections = r.analysis?.detections || [];
+  $('detection-count').hidden = !r.analysis;
+  $('detection-count').textContent = `${detections.filter(d => d.category === 'bache').length} baches / ${detections.length} regiones sugeridas por IA. Cajas aproximadas, pendientes de revisión.`;
+  for (const [index, detection] of detections.entries()) {
+    const box = detection.box;
+    if (!box || ![box.x, box.y, box.width, box.height].every(Number.isFinite)) continue;
+    const region = el('div', undefined, `detection-box ${detection.category}`);
+    region.style.left = `${box.x * 100}%`; region.style.top = `${box.y * 100}%`; region.style.width = `${box.width * 100}%`; region.style.height = `${box.height * 100}%`;
+    region.append(el('span', `${index + 1} · ${categories[detection.category] || 'Hallazgo'}`)); $('detection-boxes').append(region);
+    const card = el('div', undefined, 'detection-card'); card.append(el('strong', `${index + 1}. ${categories[detection.category]} · Confianza ${detection.confidence}`), el('p', detection.description));
+    const accept = el('button', 'Usar categoría de este hallazgo', 'outline'); accept.type = 'button'; accept.onclick = () => update(r.id, { category: detection.category, status: 'Hallazgo visual revisado por el usuario' }); card.append(accept); $('detections-list').append(card);
+    const location = el('button', 'Ubicar este hallazgo en el mapa', 'outline'); location.type = 'button'; location.onclick = () => { if (!map) return toast('El mapa no está disponible.'); placing = { id: r.id, index }; $('map-notice').textContent = `Pulsa la posición del hallazgo ${index + 1} en el mapa.`; $('map').scrollIntoView({ behavior: 'smooth', block: 'center' }); }; card.append(location);
+    card.append(el('small', detection.location ? `Coordenadas propias: ${detection.location.lat}, ${detection.location.lng}` : hasLocation(r) ? 'Hereda la ubicación aproximada de la captura; puedes corregirla.' : 'Hallazgo sin coordenadas: ubícalo para verlo en el mapa.'));
+  }
+  $('apply-analysis').hidden = !r.analysis || !categories[r.analysis.category];
+  $('record-history').replaceChildren();
+  for (const event of [...(r.history || [])].reverse()) $('record-history').append(el('li', `${new Date(event.at).toLocaleString('es-CO')} · ${event.fields.join(', ')} · ${categories[event.category] || event.category}`));
+  if (!r.history?.length) $('record-history').append(el('li', 'Sin modificaciones registradas.'));
+  for (const evidence of r.evidenceHistory || []) { const item = el('li', `Evidencia anterior · ${new Date(evidence.archivedAt).toLocaleString('es-CO')}`); if (evidence.photo) { const img = el('img'); img.src = evidence.photo; img.alt = 'Fotografía anterior conservada en el historial'; img.width = 120; item.append(img); } $('record-history').append(item); }
+  $('map-notice').textContent = placing ? `Selecciona en el mapa el lugar de ${typeof placing === 'string' ? placing : placing.id}. Puedes arrastrar el marcador para corregirlo.` : 'Los marcadores registrados se pueden arrastrar para corregir su posición.';
+}
