@@ -140,3 +140,11 @@ function setupMap() {
     if (await savePoint(target.id, target.index, +e.latlng.lat.toFixed(6), +e.latlng.lng.toFixed(6))) { placing = null; renderDetail(); toast(`Ubicación guardada para ${target.id}.`); }
   });
 }
+async function savePoint(id, index, lat, lng, source = 'Selección manual en mapa') {
+  if (!validCoordinates(lat, lng)) return false;
+  const record = records.find(r => r.id === id); if (!record) return false;
+  if (index !== null) { const analysis = structuredClone(record.analysis); if (!analysis?.detections[index]) return false; analysis.detections[index].location = { lat, lng, source: 'Selección manual en mapa' }; return update(id, { analysis }); }
+  const duplicate = findDuplicate(records, { ...record, lat, lng });
+  if (duplicate && !confirm(`El reporte ${duplicate.id} está muy cerca o usa la misma foto. ¿Guardar esta ubicación como un hallazgo distinto?`)) return false;
+  return update(id, { lat, lng, locationSource: source });
+}
