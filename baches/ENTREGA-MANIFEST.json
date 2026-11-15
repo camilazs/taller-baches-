@@ -1,25 +1,9 @@
 {
-  "scope": "Entrega de presentación sin credenciales ni dirección particular, con evidencia real de IA",
+  "scope": "Entrega sin credenciales; galería con fotografías originales únicamente",
   "files": [
     {
-      "path": "baches/PRESENTACION.md",
-      "sha256": "59875157aa080face6e844395ad7d227a610d8aee7f8390424f68cb515091e48"
-    },
-    {
-      "path": "baches/docs/validacion-ia-20261114.json",
-      "sha256": "b08f1c6e72cea05c23355aa7c742b0b92864f7e8df446104483a436246eb27b1"
-    },
-    {
-      "path": "baches/docs/validacion-ia-real.json",
-      "sha256": "e29132578886a3b03e5ea648a5388b5511b4a2bc853c8bd4dceceb5fec749d3f"
-    },
-    {
-      "path": "baches/docs/validacion-reductor-20261114.json",
-      "sha256": "3a615745c21a3ecedde6512c77e3748cc8486a063021e26606a546b12af4a6e2"
-    },
-    {
-      "path": "baches/scripts/iniciar.mjs",
-      "sha256": "a550d844737ac230fb937342c5ab0507aed39e2918732c7fa800b4fd3c8640e7"
+      "path": "baches/docs/presentacion-galeria-corregida.png",
+      "sha256": "3be05f395987363ddbddb0c6ac45736a66da904e24ba6cbfbd575060ce73da7c"
     },
     {
       "path": "README.md",
@@ -50,6 +34,10 @@
       "sha256": "86cea0be9c8cbe8f1a803393e7c1537eda8442a70c3d7e6e3b7b3a698a1fc573"
     },
     {
+      "path": "baches/PRESENTACION.md",
+      "sha256": "59875157aa080face6e844395ad7d227a610d8aee7f8390424f68cb515091e48"
+    },
+    {
       "path": "baches/PUBLICACION.md",
       "sha256": "87a45c13c4a7e6f83fec8ecad6fb47ef3d3f4540234010752955d2fabaa440eb"
     },
@@ -63,7 +51,7 @@
     },
     {
       "path": "baches/dist/app.mjs",
-      "sha256": "61610dc55d661af6967c2e99bd6eb68566d94b691225822fba87be6d3ff6ad32"
+      "sha256": "310631b7d2af5aac00ca3c93b19aa60a86732d1890af0b83b10e33f7be7fd79c"
     },
     {
       "path": "baches/dist/backup.mjs",
@@ -343,7 +331,7 @@
     },
     {
       "path": "baches/dist/photos.mjs",
-      "sha256": "374dbae6117534d9bc022102bf03a05373f4d3e9de299b9dfc8cecb669f2d38c"
+      "sha256": "6d198f59bf538e5026cc5d36bf961182312d2fd0f2e6954badca9b68c474667a"
     },
     {
       "path": "baches/dist/records.mjs",
@@ -406,12 +394,28 @@
       "sha256": "a025c542161d3b45a4dba3f0b289db5d10be1577bbdb095471045dd0ca3aba2d"
     },
     {
+      "path": "baches/docs/validacion-ia-20261114.json",
+      "sha256": "b08f1c6e72cea05c23355aa7c742b0b92864f7e8df446104483a436246eb27b1"
+    },
+    {
+      "path": "baches/docs/validacion-ia-real.json",
+      "sha256": "e29132578886a3b03e5ea648a5388b5511b4a2bc853c8bd4dceceb5fec749d3f"
+    },
+    {
+      "path": "baches/docs/validacion-reductor-20261114.json",
+      "sha256": "3a615745c21a3ecedde6512c77e3748cc8486a063021e26606a546b12af4a6e2"
+    },
+    {
       "path": "baches/package.json",
       "sha256": "51bce0157047472cd7d1279fffbeee94a10ad947188e97d1bb334b3d74fb6205"
     },
     {
       "path": "baches/scripts/crear-entrega.ps1",
       "sha256": "94000557695c5d70a365101c170b558e1f7e443f759d48a81997f2a5f2647cab"
+    },
+    {
+      "path": "baches/scripts/iniciar.mjs",
+      "sha256": "a550d844737ac230fb937342c5ab0507aed39e2918732c7fa800b4fd3c8640e7"
     },
     {
       "path": "baches/server.mjs",
@@ -435,7 +439,7 @@
     },
     {
       "path": "baches/tests/photos.test.mjs",
-      "sha256": "dda65e055887d7555aa7325552663ed8685205710a3d45c7139fa7ed62217c0f"
+      "sha256": "54ce2c9874df1b1cac1d54da6582f08f9b3ead9f7231f9a638134aa2b27cc992"
     },
     {
       "path": "baches/tests/tracking.test.mjs",

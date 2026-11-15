@@ -108,13 +108,13 @@ function selectEvidence(record) {
 function renderGallery() {
   const scoped = routeRecords(), visible = galleryRecords(scoped, $('gallery-type').value).sort((a,b)=>Number(Boolean(b.photo))-Number(Boolean(a.photo)) || a.order-b.order);
   const photos = scoped.filter(r => r.photo).length;
-  $('gallery-count').textContent = `${visible.length} ${visible.length === 1 ? 'evidencia' : 'evidencias'}`;
-  $('gallery-note').textContent = photos ? `${photos} fotografías originales adjuntas. Las observaciones sin imagen siguen pendientes de evidencia.` : 'Aún no hay fotografías originales adjuntas a este recorrido. Puedes cargar varias a la vez o añadirlas a cada reporte.';
+  $('gallery-count').textContent = `${visible.length} ${visible.length === 1 ? 'fotografía' : 'fotografías'}`;
+  $('gallery-note').textContent = photos ? `${photos} fotografías originales adjuntas. Los reportes sin foto se consultan en el recorrido.` : 'Aún no hay fotografías originales adjuntas a este recorrido. Puedes cargar varias a la vez o añadirlas a cada reporte.';
   $('photo-batch').disabled = importingPhotos;
   $('gallery-import-state').textContent = importingPhotos ? 'Validando y guardando las imágenes…' : 'JPG, PNG o WebP · 3 MB por imagen · Hasta 20 por carga';
   $('evidence-cards').replaceChildren();
   if (!visible.length) {
-    const empty = el('div',undefined,'gallery-empty'); empty.append(el('span','↥','empty-symbol'),el('h3','Tus fotografías van aquí'),el('p','Adjunta los archivos originales para documentar los baches. Los accesos directos de Windows no incluyen la imagen.'));
+    const empty = el('div',undefined,'gallery-empty'); empty.append(el('span','↥','empty-symbol'),el('h3','No hay fotografías en esta categoría'),el('p','Selecciona todas las evidencias para ver las fotos disponibles o adjunta una nueva imagen.'));
     const attach = el('button','Adjuntar fotografías','primary'); attach.type='button'; attach.onclick=()=>$('photo-batch').click(); empty.append(attach); $('evidence-cards').append(empty);
   }
   for (const r of visible) {

@@ -20,10 +20,11 @@ test('resultados reales guardados se vinculan solo al hash original y respetan c
   const live={...photo,analysis:{summary:'Análisis posterior'}};assert.equal(withRecordedAnalysis(live,evidence).analysis.summary,'Análisis posterior');
 });
 
-test('galería mantiene evidencias y pendientes separados sin inventar fotografías', () => {
-  const records = [{ id: 'a', category: 'bache', photo: null }, { id: 'b', category: 'pendiente', photo: 'original' }];
-  assert.deepEqual(galleryRecords(records, 'bache'), [records[0]]);
+test('galería muestra solo fotos adjuntas y conserva reportes sin evidencia fuera de las tarjetas', () => {
+  const records = [{ id: 'a', category: 'bache', photo: null }, { id: 'b', category: 'pendiente', photo: 'original' }, {id:'c',category:'bache',photo:'bache-original'}, {id:'d',category:'bache',photo:''}];
+  assert.deepEqual(galleryRecords(records, 'bache'), [records[2]]);
   assert.deepEqual(galleryRecords(records, 'pendiente'), [records[1]]);
-  assert.deepEqual(galleryRecords(records), records);
+  assert.deepEqual(galleryRecords(records), [records[1],records[2]]);
+  assert.equal(records.length,4);
   assert.equal(records[0].photo, null);
 });

@@ -11,7 +11,7 @@ export async function readPhotoFile(file) {
   const photoHash = globalThis.crypto?.subtle ? Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))).map(n => n.toString(16).padStart(2,'0')).join('') : null;
   return { photo, photoHash, filename: file.name };
 }
-export function galleryRecords(records, category = 'all') { return records.filter(r => category === 'all' || r.category === category); }
+export function galleryRecords(records, category = 'all') { return records.filter(r => typeof r.photo === 'string' && r.photo.trim().length > 0 && (category === 'all' || r.category === category)); }
 export function withRecordedAnalysis(record, evidence) {
   if (record.bundledAnalysisVersion !== undefined) return record;
   const next={...record,bundledAnalysisVersion:1};
