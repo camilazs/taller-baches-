@@ -1,0 +1,29 @@
+{
+  "provider": "generativelanguage.googleapis.com",
+  "model": "gemini-3.5-flash-lite",
+  "at": "2026-11-14T22:54:32.377Z",
+  "photoFile": "bb565db9070e1e88.jpeg",
+  "origin": "Llamada real autorizada por el usuario",
+  "analysis": {
+    "category": "bache",
+    "confidence": "alta",
+    "summary": "Se detecta un bache prominente con pérdida de material en la calzada de la vía asfaltada.",
+    "warnings": [
+      "La evaluación se basa exclusivamente en la evidencia visual de la imagen proporcionada.",
+      "Las regiones marcadas son aproximadas y requieren revisión humana."
+    ],
+    "detections": [
+      {
+        "category": "bache",
+        "confidence": "alta",
+        "description": "Bache principal con desprendimiento de la capa asfáltica y exposición de la estructura inferior.",
+        "box": {
+          "x": 0.12,
+          "y": 0.65,
+          "width": 0.52,
+          "height": 0.19
+        }
+      }
+    ]
+  }
+}

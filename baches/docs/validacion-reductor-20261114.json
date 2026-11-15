@@ -1,0 +1,29 @@
+{
+  "provider": "generativelanguage.googleapis.com",
+  "model": "gemini-3.5-flash-lite",
+  "at": "2026-11-14T22:55:37.870Z",
+  "photoFile": "b85284b5d709194f.jpeg",
+  "origin": "Llamada real autorizada por el usuario",
+  "analysis": {
+    "category": "reductor",
+    "confidence": "alta",
+    "summary": "Se detecta un reductor de velocidad pintado de amarillo que cruza la calle y zonas de pavimento irregular en la vía.",
+    "warnings": [
+      "Las regiones requieren revisión humana y no certifican el estado de la vía.",
+      "La iluminación y los reflejos por humedad pueden limitar la visibilidad precisa de baches pequeños."
+    ],
+    "detections": [
+      {
+        "category": "reductor",
+        "confidence": "alta",
+        "description": "Reductor de velocidad transversal pintado de color amarillo en el asfalto.",
+        "box": {
+          "x": 0.292,
+          "y": 0.5257,
+          "width": 0.584,
+          "height": 0.082
+        }
+      }
+    ]
+  }
+}
