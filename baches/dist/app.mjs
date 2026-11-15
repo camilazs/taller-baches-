@@ -1,7 +1,7 @@
 import { seedRecords, categories, routeInfo } from './records.mjs';
 import { setupCapture } from './capture.mjs';
 import { planRestore, toGeoJSON } from './backup.mjs';
-import { readPhotoFile, galleryRecords } from './photos.mjs';
+import { readPhotoFile, galleryRecords, withRecordedAnalysis } from './photos.mjs';
 import { initialRoutes, DRAFT_ROUTE_ID, PENDING_ROUTE_ID, validCoordinates, parseRoute, findDuplicate, applyRecordChange, planPhotoAssociation, locatedDetections } from './tracking.mjs';
 
 const $ = id => document.getElementById(id);
@@ -139,7 +139,7 @@ function renderGallery() {
 }
 function renderDetail() {
   const r = current(); $('detail').hidden = !r; if (!r) { $('record-history').replaceChildren(); return; }
-  $('detail-id').textContent = `${r.id} / ${r.direction === 'ida' ? 'IDA' : 'REGRESO'} / ${r.source}`;
+  $('detail-id').textContent = `${r.id} / ${r.direction === 'ida' ? 'IDA' : r.direction === 'regreso' ? 'REGRESO' : 'SENTIDO POR CONFIRMAR'} / ${r.source}`;
   $('detail-title').textContent = r.title; $('detail-description').textContent = r.description; $('detail-category').textContent = categories[r.category]; $('edit-category').value = r.category;
   $('edit-title').value = r.title; $('edit-description').value = r.description;
   $('analysis-origin').textContent = r.analysis ? (r.analysisOrigin || 'Análisis previo · origen sin verificar') : (r.reviewMethod || 'Pendiente de análisis real. Las observaciones del recorrido son reportes del usuario, no detecciones de IA.');
@@ -367,6 +367,7 @@ async function loadProjectPhotos(){
     for(const [index,item] of manifest.entries()){
       const existing=records.find(r=>r.id===item.id);
       if(existing){
+        const reviewed=withRecordedAnalysis(existing,item);if(reviewed!==existing){if(db)await persist(reviewed);Object.assign(existing,reviewed);}
         if(item.reviewedCategory && existing.category==='pendiente' && !existing.history?.length){const revised={...existing,category:item.reviewedCategory,reviewMethod:item.reviewMethod};if(db)await persist(revised);Object.assign(existing,revised);}
         continue;
       }
@@ -374,7 +375,7 @@ async function loadProjectPhotos(){
       const prepared=await readPhotoFile(new File([await response.blob()],item.originalName,{type:'image/jpeg'}));
       if(prepared.photoHash!==item.sha256)throw new Error('La fotografía no coincide con el original.');
       const record={id:item.id,routeId:DRAFT_ROUTE_ID,direction:'sin-asignar',order:index+1,title:`Fotografía del recorrido ${String(index+1).padStart(2,'0')}`,description:`Archivo original: ${item.originalName}. Relación con el reporte y sentido pendientes de confirmar.`,category:item.reviewedCategory||'pendiente',reviewMethod:item.reviewMethod,lat:null,lng:null,...prepared,analysis:null,source:'Fotografía original de la carpeta del proyecto',status:'Foto original · pendiente de validación y ubicación',history:[]};
-      if(db)await persist(record);records.push(record);count++;
+      const reviewed=withRecordedAnalysis(record,item);if(db)await persist(reviewed);records.push(reviewed);count++;
       if(count%8===0)renderGallery();
     }
     render();if(count)toast(`${count} fotografías originales incorporadas. Puedes asociarlas a los reportes del recorrido.`);

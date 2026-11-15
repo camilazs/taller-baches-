@@ -7,11 +7,12 @@ $output = [System.IO.Path]::GetFullPath($OutputDirectory)
 $zipPath = Join-Path $output ('baches-entrega-' + (Get-Date -Format 'yyyyMMdd-HHmmss') + '.zip')
 if (Test-Path -LiteralPath $zipPath) { throw 'Ya existe una entrega con este nombre. No se sobrescribió.' }
 $files = [System.Collections.Generic.List[System.IO.FileInfo]]::new()
-foreach ($name in @('package.json','server.mjs','vision.mjs','.env.example','.gitignore','INICIAR.cmd','README.md','VALIDACION.md','ENTREGA.md','GIT-CAMILA.md')) {
+foreach ($name in @('package.json','server.mjs','vision.mjs','.env.example','.env.gemini.example','.gitignore','INICIAR.cmd','README.md','VALIDACION.md','ENTREGA.md','GIT-CAMILA.md','PRESENTACION.md')) {
   $files.Add((Get-Item -LiteralPath (Join-Path $project $name)))
 }
 foreach ($folder in @('dist','tests','scripts','docs')) {
   foreach ($file in (Get-ChildItem -LiteralPath (Join-Path $project $folder) -Recurse -File)) {
+    if ($folder -eq 'docs' -and $file.Name -notmatch '^(validacion-(ia|reductor)-(real|20261114)\.json|presentacion-.*\.png|mapa-margarita-pinta\.png|galeria-real-movil\.png)$') { continue }
     if ($file.Extension -notin @('.lnk','.zip') -and -not $file.Name.StartsWith('.env')) { $files.Add($file) }
   }
 }
@@ -22,7 +23,7 @@ $manifest = @()
 try {
   foreach ($file in $files) {
     $relative = $file.FullName.Substring($project.TrimEnd('\').Length + 1).Replace('\','/')
-    if ($relative.StartsWith('..') -or ($file.Name -like '.env*' -and $file.Name -ne '.env.example')) { throw 'Archivo no permitido en la entrega.' }
+    if ($relative.StartsWith('..') -or ($file.Name -like '.env*' -and $file.Name -notin @('.env.example','.env.gemini.example'))) { throw 'Archivo no permitido en la entrega.' }
     $entry = $archive.CreateEntry('baches/' + $relative)
     $inputStream = [System.IO.File]::OpenRead($file.FullName)
     $entryStream = $entry.Open()

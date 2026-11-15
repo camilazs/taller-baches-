@@ -202,7 +202,33 @@
     "sha256": "bb565db9070e1e886a49d300b60612acb9a66f61dabd312fa641ba2d7d215c4e",
     "bytes": 198241,
     "reviewedCategory": "bache",
-    "reviewMethod": "Revisión visual preliminar de la fotografía · no IA · pendiente de validación en campo"
+    "reviewMethod": "Revisión visual preliminar de la fotografía · no IA · pendiente de validación en campo",
+    "analysis": {
+      "category": "bache",
+      "confidence": "alta",
+      "summary": "Se detecta un bache prominente con pérdida de material en la calzada de la vía asfaltada.",
+      "warnings": [
+        "La evaluación se basa exclusivamente en la evidencia visual de la imagen proporcionada.",
+        "Las regiones marcadas son aproximadas y requieren revisión humana."
+      ],
+      "detections": [
+        {
+          "category": "bache",
+          "confidence": "alta",
+          "description": "Bache principal con desprendimiento de la capa asfáltica y exposición de la estructura inferior.",
+          "box": {
+            "x": 0.12,
+            "y": 0.65,
+            "width": 0.52,
+            "height": 0.19
+          }
+        }
+      ]
+    },
+    "analysisOrigin": "Gemini · análisis real guardado el 14/11/2026 · pendiente de revisión",
+    "analyzedAt": "2026-11-14T22:54:32.377Z",
+    "analysisModel": "gemini-3.5-flash-lite",
+    "analysisProvider": "generativelanguage.googleapis.com"
   },
   {
     "id": "foto-9a61af9baa5dabdf",
@@ -295,7 +321,33 @@
     "file": "b85284b5d709194f.jpeg",
     "originalName": "WhatsApp Image 2026-10-25 at 12.15.31 PM (42).jpeg",
     "sha256": "b85284b5d709194fcb838bfb7ed78ab3e15e4e560c0f52837aeaa2459d21b5e7",
-    "bytes": 175142
+    "bytes": 175142,
+    "analysis": {
+      "category": "reductor",
+      "confidence": "alta",
+      "summary": "Se detecta un reductor de velocidad pintado de amarillo que cruza la calle y zonas de pavimento irregular en la vía.",
+      "warnings": [
+        "Las regiones requieren revisión humana y no certifican el estado de la vía.",
+        "La iluminación y los reflejos por humedad pueden limitar la visibilidad precisa de baches pequeños."
+      ],
+      "detections": [
+        {
+          "category": "reductor",
+          "confidence": "alta",
+          "description": "Reductor de velocidad transversal pintado de color amarillo en el asfalto.",
+          "box": {
+            "x": 0.292,
+            "y": 0.5257,
+            "width": 0.584,
+            "height": 0.082
+          }
+        }
+      ]
+    },
+    "analysisOrigin": "Gemini · análisis real guardado el 14/11/2026 · pendiente de revisión",
+    "analyzedAt": "2026-11-14T22:55:37.870Z",
+    "analysisModel": "gemini-3.5-flash-lite",
+    "analysisProvider": "generativelanguage.googleapis.com"
   },
   {
     "id": "foto-7f4813a9e12b7137",

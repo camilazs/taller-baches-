@@ -1,5 +1,5 @@
 @echo off
 cd /d "%~dp0"
-echo Abre http://127.0.0.1:3102 en tu navegador cuando aparezca el mensaje de inicio.
-call npm.cmd start
+echo Iniciando Via Clara...
+node --use-system-ca --env-file-if-exists=.env.local scripts/iniciar.mjs
 pause

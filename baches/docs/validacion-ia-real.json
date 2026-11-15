@@ -1,0 +1,29 @@
+{
+  "provider": "generativelanguage.googleapis.com",
+  "model": "gemini-3.5-flash-lite",
+  "at": "2026-11-11T23:03:26.371Z",
+  "photoFile": "bb565db9070e1e88.jpeg",
+  "origin": "Llamada real autorizada por el usuario",
+  "analysis": {
+    "category": "bache",
+    "confidence": "alta",
+    "summary": "Se detecta un bache prominente con pérdida de material en la calzada de asfalto, mostrando fragmentos de piedra expuestos en su interior.",
+    "warnings": [
+      "La evaluación se basa estrictamente en la evidencia visual de la fotografía.",
+      "Las regiones requieren revisión humana y no certifican el estado definitivo de la vía."
+    ],
+    "detections": [
+      {
+        "category": "bache",
+        "confidence": "alta",
+        "description": "Bache con pérdida de material en la superficie asfáltica",
+        "box": {
+          "x": 0.126,
+          "y": 0.648,
+          "width": 0.518,
+          "height": 0.187
+        }
+      }
+    ]
+  }
+}

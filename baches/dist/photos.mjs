@@ -12,3 +12,9 @@ export async function readPhotoFile(file) {
   return { photo, photoHash, filename: file.name };
 }
 export function galleryRecords(records, category = 'all') { return records.filter(r => category === 'all' || r.category === category); }
+export function withRecordedAnalysis(record, evidence) {
+  if (record.bundledAnalysisVersion !== undefined) return record;
+  const next={...record,bundledAnalysisVersion:1};
+  if(record.analysis || !record.photo || record.photoHash!==evidence.sha256 || !evidence.analysis)return next;
+  return {...next,analysis:structuredClone(evidence.analysis),analysisOrigin:evidence.analysisOrigin,analyzedAt:evidence.analyzedAt,status:'IA real analizada · pendiente de revisión'};
+}

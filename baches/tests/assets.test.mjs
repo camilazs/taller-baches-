@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { seedRecords } from '../dist/records.mjs';
+import { validateAnalysis } from '../vision.mjs';
 
 test('64 fotografías viales originales conservan firma y hash; se excluye la foto ajena al recorrido', async () => {
   const root=new URL('../dist/evidence/',import.meta.url);
@@ -14,7 +15,9 @@ test('64 fotografías viales originales conservan firma y hash; se excluye la fo
     const bytes=await readFile(new URL(f.file,root));
     assert.equal(bytes.length,f.bytes);assert.deepEqual([...bytes.subarray(0,3)],[255,216,255]);
     assert.equal(createHash('sha256').update(bytes).digest('hex'),f.sha256);
+    if(f.analysis){assert.doesNotThrow(()=>validateAnalysis(f.analysis));assert.equal(f.analysisProvider,'generativelanguage.googleapis.com');assert.match(f.analysisOrigin,/análisis real guardado/);assert.ok(Number.isFinite(Date.parse(f.analyzedAt)));}
   }
+  assert.equal(files.filter(f=>f.analysis).length,2);
 });
 
 test('ida y regreso contienen geometría vial de Pasto y separan sectores aproximados de GPS de baches', async()=>{
