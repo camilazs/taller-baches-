@@ -56,3 +56,14 @@ test('servidor sirve la web, mantiene claves privadas y bloquea llamadas cruzada
     assert.equal((await fetch(base + '/api/analyze', { method: 'POST', headers: { Origin: 'https://example.org', 'Content-Type': 'application/json' }, body: '{}' })).status, 403);
   } finally { await new Promise(resolve => server.close(resolve)); if (before === undefined) delete process.env.AI_API_KEY; else process.env.AI_API_KEY = before; }
 });
+
+test('Vercel acepta HTTPS del mismo dominio y rechaza otros dominios sin exponer credenciales',async()=>{
+  const before=process.env.VERCEL;process.env.VERCEL='1';
+  const server=createApp();await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+  const base=`http://127.0.0.1:${server.address().port}`;
+  try{
+    assert.equal((await fetch(base+'/api/config',{headers:{Origin:base.replace('http:','https:')}})).status,200);
+    assert.equal((await fetch(base+'/api/config',{headers:{Origin:'https://otro.vercel.app'}})).status,403);
+    assert.equal((await fetch(base+'/api/config',{headers:{Origin:base}})).status,403);
+  }finally{await new Promise(resolve=>server.close(resolve));if(before===undefined)delete process.env.VERCEL;else process.env.VERCEL=before;}
+});

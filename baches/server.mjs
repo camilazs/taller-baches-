@@ -13,8 +13,9 @@ export function createApp() {
     try {
       const url = new URL(req.url, 'http://localhost');
       if (url.pathname.startsWith('/api/')) {
-        // API local: no CORS, y rechazo explícito de solicitudes de otros sitios.
-        if (req.headers.origin && req.headers.origin !== `http://${req.headers.host}`) return send(res, 403, { error: 'Origen no permitido.' });
+        // Mismo origen en HTTP local o HTTPS de Vercel; nunca CORS abierto.
+        const origin = `${process.env.VERCEL ? 'https' : 'http'}://${req.headers.host}`;
+        if (req.headers.origin && req.headers.origin !== origin) return send(res, 403, { error: 'Origen no permitido.' });
         if (req.headers['sec-fetch-site'] === 'cross-site') return send(res, 403, { error: 'Origen no permitido.' });
         if (url.pathname === '/api/config' && req.method === 'GET') return send(res, 200, { configured: Boolean(process.env.AI_API_KEY?.trim()) });
         if (url.pathname !== '/api/analyze') return send(res, 404, { error: 'Ruta no encontrada.' });
@@ -49,7 +50,9 @@ export function createApp() {
     }
   });
 }
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+const app = createApp();
+export default app;
+if (!process.env.VERCEL && process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const port = Number(process.env.PORT || 3102);
-  createApp().listen(port, '127.0.0.1', () => console.log(`Vía Clara disponible en http://127.0.0.1:${port}`));
+  app.listen(port, '127.0.0.1', () => console.log(`Vía Clara disponible en http://127.0.0.1:${port}`));
 }

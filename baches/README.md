@@ -42,3 +42,12 @@ Ejecuta npm.cmd test. Hay 18 pruebas automatizadas de contratos, imágenes, pers
 Consulta PRESENTACION.md para el recorrido de exposición y VALIDACION.md para los resultados y límites. La entrega reproducible se genera con scripts/crear-entrega.ps1 y excluye credenciales.
 
 Fuentes: OpenStreetMap (ODbL), Nominatim, OSRM; Margarita Pinta: https://www.rappi.com.co/restaurantes/900178500-margarita-pinta. Leaflet 1.9.4. Gemini: https://aistudio.google.com/docs/openai y https://aistudio.google.com/docs/pricing. El nivel gratuito puede usar contenido para mejorar los productos según las condiciones del proveedor.
+
+
+## Vercel
+
+Importa la rama entrega-baches-20261111 y selecciona baches como directorio raíz, con framework Node. La configuración vercel.json incluye dist/** y un tiempo máximo de 60 segundos. server.mjs exporta el servidor HTTP sin abrir un puerto dentro de Vercel y acepta HTTPS del mismo dominio.
+
+Añade AI_API_KEY como variable privada del servidor, AI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai y AI_MODEL=gemini-3.5-flash-lite. No añadas PORT ni publiques .env.local. Configura las variables para Producción y Vista previa. No necesitas un directorio de salida estática ni un comando de compilación personalizado.
+
+Se verificó el contrato HTTPS en pruebas locales; el despliegue público debe verificarse después de desplegar desde Vercel.
